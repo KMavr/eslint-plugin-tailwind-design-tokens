@@ -38,6 +38,10 @@ const writeCss = (contents: string) => {
   writeFileSync(join(dir, 'globals.css'), contents, 'utf-8');
 };
 
+const writeConfig = (contents: string) => {
+  writeFileSync(join(dir, 'tailwind.config.js'), contents, 'utf-8');
+};
+
 describe('tokens', () => {
   describe('loadTokens — inline', () => {
     it('should normalize inline token keys', () => {
@@ -97,6 +101,51 @@ describe('tokens', () => {
     });
   });
 
+  describe('loadTokens — configFile (tailwind v3)', () => {
+    it('should flatten nested theme colors to normalized-color -> name', () => {
+      writeConfig(`module.exports = {
+        theme: {
+          extend: {
+            colors: {
+              ink: '#0A0A0A',
+              brand: { 500: '#aabbcc', DEFAULT: '#111111' },
+            },
+          },
+        },
+      };`);
+      expect(loadTokens({ configFile: 'tailwind.config.js' }, dir)).toEqual({
+        '#0a0a0a': 'ink',
+        '#aabbcc': 'brand-500',
+        '#111111': 'brand',
+      });
+    });
+
+    it('should read colors defined directly under theme', () => {
+      writeConfig(`module.exports = { theme: { colors: { paper: '#ffffff' } } };`);
+      expect(loadTokens({ configFile: 'tailwind.config.js' }, dir)).toEqual({
+        '#ffffff': 'paper',
+      });
+    });
+
+    it('should ignore non-color values (functions, css var refs)', () => {
+      writeConfig(`module.exports = {
+        theme: { extend: { colors: {
+          ink: '#0a0a0a',
+          dynamic: ({ opacityValue }) => 'rgba(0,0,0,' + opacityValue + ')',
+          ref: 'var(--whatever)',
+        } } },
+      };`);
+      expect(loadTokens({ configFile: 'tailwind.config.js' }, dir)).toEqual({
+        '#0a0a0a': 'ink',
+      });
+    });
+
+    it('should fail soft (return {}) when the config does not exist', () => {
+      expect(() => loadTokens({ configFile: 'nope.config.js' }, dir)).not.toThrow();
+      expect(loadTokens({ configFile: 'nope.config.js' }, dir)).toEqual({});
+    });
+  });
+
   describe('loadTokens — merge / precedence', () => {
     it('should merge css and inline, with inline winning on conflict', () => {
       writeCss(`@theme {
@@ -109,6 +158,17 @@ describe('tokens', () => {
         '#0a0a0a': 'ink-override',
         '#ffffff': 'paper',
       });
+    });
+
+    it('should apply precedence css < config < inline for the same color', () => {
+      writeCss(`@theme { --color-x: #0a0a0a; }`);
+      writeConfig(`module.exports = { theme: { colors: { y: '#0a0a0a' } } };`);
+      expect(
+        loadTokens(
+          { cssFile: 'globals.css', configFile: 'tailwind.config.js', tokens: { '#0A0A0A': 'z' } },
+          dir,
+        ),
+      ).toEqual({ '#0a0a0a': 'z' });
     });
   });
 });

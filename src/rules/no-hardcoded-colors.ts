@@ -8,6 +8,7 @@ const rule: Rule.RuleModule = {
     docs: {
       description:
         'Disallow hardcoded color values (hex, rgb, hsl, oklch); use design-system tokens',
+      url: 'https://github.com/KMavr/eslint-plugin-tailwind-design-tokens/blob/main/docs/rules/no-hardcoded-colors.md',
     },
     messages: {
       noHardcodedColor:

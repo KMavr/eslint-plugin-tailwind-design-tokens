@@ -4,7 +4,10 @@ import { isDefaultPaletteClass } from '../lib/tailwind';
 const rule: Rule.RuleModule = {
   meta: {
     type: 'problem',
-    docs: { description: 'Disallow default Tailwind palette colors; use design-system tokens' },
+    docs: {
+      description: 'Disallow default Tailwind palette colors; use design-system tokens',
+      url: 'https://github.com/KMavr/eslint-plugin-tailwind-design-tokens/blob/main/docs/rules/no-default-palette.md',
+    },
     messages: {
       noDefaultPalette:
         'Avoid default Tailwind color "{{ className }}" ({{ color }}). Use a design-system token instead.',

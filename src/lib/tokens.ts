@@ -12,6 +12,42 @@ export interface TokenOptions {
 const THEME_REGEX = /@theme\s*\{([^}]+)\}/s;
 const COLOR_REGEX = /--color-([\w-]+)\s*:\s*([^;]+);/g;
 
+interface CacheEntry {
+  mtimeMs: number;
+  tokens: Record<string, string>;
+}
+
+const fileCache = new Map<string, CacheEntry>();
+
+const readThroughCache = (
+  abs: string,
+  compute: () => Record<string, string>,
+): Record<string, string> => {
+  let mtimeMs: number;
+  try {
+    mtimeMs = fs.statSync(abs).mtimeMs;
+  } catch {
+    return {};
+  }
+
+  const cached = fileCache.get(abs);
+  if (cached && cached.mtimeMs === mtimeMs) {
+    return cached.tokens;
+  }
+
+  const tokens = safeCompute(compute);
+  fileCache.set(abs, { mtimeMs, tokens });
+  return tokens;
+};
+
+const safeCompute = (compute: () => Record<string, string>): Record<string, string> => {
+  try {
+    return compute();
+  } catch {
+    return {};
+  }
+};
+
 const normalizeMap = (map: Record<string, string>): Record<string, string> =>
   Object.fromEntries(
     Object.entries(map).flatMap(([color, name]) => {
@@ -22,8 +58,9 @@ const normalizeMap = (map: Record<string, string>): Record<string, string> =>
 
 const loadCssTokens = (cssFile: string | undefined, cwd: string): Record<string, string> => {
   if (!cssFile) return {};
-  try {
-    const content = fs.readFileSync(path.resolve(cwd, cssFile), 'utf-8');
+  const abs = path.resolve(cwd, cssFile);
+  return readThroughCache(abs, () => {
+    const content = fs.readFileSync(abs, 'utf-8');
     const theme = content.match(THEME_REGEX);
     if (!theme) return {};
 
@@ -33,9 +70,7 @@ const loadCssTokens = (cssFile: string | undefined, cwd: string): Record<string,
         return value ? [[value, m[1]]] : [];
       }),
     );
-  } catch {
-    return {};
-  }
+  });
 };
 
 const tokenName = (prefix: string, key: string): string => {
@@ -60,9 +95,12 @@ const loadConfigFileTokens = (
   cwd: string,
 ): Record<string, string> => {
   if (!configFile) return {};
-  try {
-    const abs = path.resolve(cwd, configFile);
-    const config = createRequire(abs)(abs);
+  const abs = path.resolve(cwd, configFile);
+  return readThroughCache(abs, () => {
+    const req = createRequire(abs);
+    // Bust Node's own module cache so an edited config actually reloads.
+    delete req.cache[abs];
+    const config = req(abs);
 
     const colors: Record<string, unknown> = {
       ...config?.theme?.colors,
@@ -75,9 +113,7 @@ const loadConfigFileTokens = (
         return normalized ? [[normalized, name]] : [];
       }),
     );
-  } catch {
-    return {};
-  }
+  });
 };
 
 export const loadTokens = (options: TokenOptions, cwd = process.cwd()): Record<string, string> => ({

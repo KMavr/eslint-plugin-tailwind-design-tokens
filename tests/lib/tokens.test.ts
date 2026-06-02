@@ -1,5 +1,5 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { mkdtempSync, writeFileSync, rmSync } from 'node:fs';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import fs, { mkdtempSync, writeFileSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { loadTokens } from '../../src/lib/tokens';
@@ -169,6 +169,30 @@ describe('tokens', () => {
           dir,
         ),
       ).toEqual({ '#0a0a0a': 'z' });
+    });
+  });
+
+  describe('loadTokens — caching', () => {
+    it('should not re-read an unchanged cssFile on repeated calls', () => {
+      writeCss(`@theme { --color-ink: #0a0a0a; }`);
+      const spy = vi.spyOn(fs, 'readFileSync');
+      loadTokens({ cssFile: 'globals.css' }, dir);
+      loadTokens({ cssFile: 'globals.css' }, dir);
+      const reads = spy.mock.calls.filter(([p]) => String(p).endsWith('globals.css'));
+      expect(reads).toHaveLength(1);
+      spy.mockRestore();
+    });
+
+    it('should re-read and refresh when the cssFile changes (mtime)', () => {
+      const file = join(dir, 'globals.css');
+      writeCss(`@theme { --color-ink: #0a0a0a; }`);
+      expect(loadTokens({ cssFile: 'globals.css' }, dir)).toEqual({ '#0a0a0a': 'ink' });
+
+      writeFileSync(file, `@theme { --color-ink: #ffffff; }`, 'utf-8');
+      const future = new Date(Date.now() + 2000);
+      fs.utimesSync(file, future, future);
+
+      expect(loadTokens({ cssFile: 'globals.css' }, dir)).toEqual({ '#ffffff': 'ink' });
     });
   });
 });

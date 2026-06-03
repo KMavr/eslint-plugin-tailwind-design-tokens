@@ -52,6 +52,9 @@ ruleTester.run('no-hardcoded-colors', rule, {
     { code: 'const c = "#0a0a0a";', options: [{ allow: ['#0a0a0a'] }] },
     // allowed via normalized value even though written differently
     { code: 'const c = "#0A0A0A";', options: [{ allow: ['#0a0a0a'] }] },
+    // migration: a /regex/ allow entry silences a whole class of colors
+    { code: 'const c = "rgb(10 10 10)";', options: [{ allow: ['/^rgb\\(/'] }] },
+    { code: 'const c = "#0a0a0a";', options: [{ allow: ['/^#0a/'] }] },
   ],
   invalid: [
     {

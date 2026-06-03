@@ -1,6 +1,7 @@
 import type { Rule } from 'eslint';
 import { loadTokens, TokenOptions } from '../lib/tokens';
 import { findColors } from '../lib/colors';
+import { makeAllowMatcher } from '../lib/allow';
 
 const rule: Rule.RuleModule = {
   meta: {
@@ -35,11 +36,11 @@ const rule: Rule.RuleModule = {
   create(context) {
     const options = (context.options[0] ?? {}) as TokenOptions & { allow?: string[] };
     const tokens = loadTokens(options, context.cwd);
-    const allow = new Set(options.allow ?? []);
+    const isAllowed = makeAllowMatcher(options.allow);
 
     const checkString = (node: Rule.Node, value: string, fixable: boolean) => {
       findColors(value).forEach(({ raw, normalized, index }) => {
-        if (allow.has(raw) || allow.has(normalized)) return;
+        if (isAllowed(raw) || isAllowed(normalized)) return;
 
         const token = tokens[normalized];
         if (token) {

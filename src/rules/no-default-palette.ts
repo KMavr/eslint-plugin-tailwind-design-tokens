@@ -1,5 +1,6 @@
 import type { Rule } from 'eslint';
 import { isDefaultPaletteClass } from '../lib/tailwind';
+import { makeAllowMatcher } from '../lib/allow';
 
 const rule: Rule.RuleModule = {
   meta: {
@@ -22,14 +23,14 @@ const rule: Rule.RuleModule = {
   },
 
   create(context) {
-    const allow = new Set(context.options[0]?.allow ?? []);
+    const isAllowed = makeAllowMatcher(context.options[0]?.allow ?? []);
 
     const checkString = (node: Rule.Node, value: string) => {
       const tokens = value.split(' ');
 
       tokens.forEach((token) => {
         const colorPart = isDefaultPaletteClass(token);
-        if (colorPart && !allow.has(colorPart) && !allow.has(token)) {
+        if (colorPart && !isAllowed(colorPart) && !isAllowed(token)) {
           context.report({
             node,
             messageId: 'noDefaultPalette',

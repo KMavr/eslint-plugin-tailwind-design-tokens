@@ -27,7 +27,7 @@ yarn add --dev eslint-plugin-tailwind-design-tokens
 pnpm add --save-dev eslint-plugin-tailwind-design-tokens
 ```
 
-Requires ESLint 8 or 9+ (both the legacy `.eslintrc` and the flat config systems are supported).
+Requires ESLint 9+ (both the legacy `.eslintrc` and the flat config systems are supported).
 
 ## Usage
 
@@ -61,7 +61,7 @@ export default [
 ];
 ```
 
-### Legacy config (ESLint 8, `.eslintrc.json`)
+### Legacy config (`.eslintrc.json`)
 
 ```json
 {

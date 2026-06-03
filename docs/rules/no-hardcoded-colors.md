@@ -1,6 +1,12 @@
-# no-hardcoded-colors
+# tailwind-design-tokens/no-hardcoded-colors
 
-Disallow hardcoded color literals and steer toward design-system tokens.
+📝 Disallow hardcoded color values (hex, rgb, hsl, hwb, lab, lch, oklab, oklch); use design-system tokens.
+
+💼 This rule is enabled in the ✅ `recommended` config.
+
+🔧💡 This rule is automatically fixable by the [`--fix` CLI option](https://eslint.org/docs/latest/user-guide/command-line-interface#--fix) and manually fixable by [editor suggestions](https://eslint.org/docs/latest/use/core-concepts#rule-suggestions).
+
+<!-- end auto-generated rule header -->
 
 ## Rule details
 

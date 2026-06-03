@@ -1,6 +1,10 @@
-# no-default-palette
+# tailwind-design-tokens/no-default-palette
 
-Disallow default Tailwind palette color classes; use design-system tokens.
+📝 Disallow default Tailwind palette colors; use design-system tokens.
+
+💼 This rule is enabled in the ✅ `recommended` config.
+
+<!-- end auto-generated rule header -->
 
 ## Rule details
 

@@ -2,6 +2,7 @@
 
 [![CI](https://github.com/KMavr/eslint-plugin-tailwind-design-tokens/actions/workflows/ci.yml/badge.svg)](https://github.com/KMavr/eslint-plugin-tailwind-design-tokens/actions/workflows/ci.yml)
 [![npm version](https://img.shields.io/npm/v/eslint-plugin-tailwind-design-tokens.svg)](https://www.npmjs.com/package/eslint-plugin-tailwind-design-tokens)
+[![npm downloads](https://img.shields.io/npm/dm/eslint-plugin-tailwind-design-tokens.svg)](https://www.npmjs.com/package/eslint-plugin-tailwind-design-tokens)
 
 ESLint plugin that flags hardcoded colors and default Tailwind palette classes, steering you toward
 your design-system tokens.
@@ -17,6 +18,17 @@ which token to use instead.
 It understands where tokens live across Tailwind versions — a v4 `@theme` block, a v3
 `tailwind.config.js`, or an inline map — so it works whatever your setup.
 
+## Before / after
+
+```jsx
+// ✗ flagged — stock palette class + hardcoded hex
+<button className="bg-[#0a0a0a] text-red-500" />;
+
+// ✓ design-system tokens
+// (when #0a0a0a maps to a token, bg-[#0a0a0a] → bg-ink is auto-fixable)
+<button className="bg-ink text-primary" />;
+```
+
 ## Install
 
 ```sh
@@ -28,6 +40,10 @@ pnpm add --save-dev eslint-plugin-tailwind-design-tokens
 ```
 
 Requires ESLint 9+ (both the legacy `.eslintrc` and the flat config systems are supported).
+
+Every release is published from CI with
+[npm provenance](https://docs.npmjs.com/generating-provenance-statements) attestations, so each
+version on npm links back to the exact commit and workflow that built it.
 
 ## Usage
 

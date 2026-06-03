@@ -53,6 +53,10 @@
       "prettier --write"
     ]
   },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
   "peerDependencies": {
     "eslint": ">=8"
   },

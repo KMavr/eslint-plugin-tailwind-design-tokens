@@ -1,6 +1,6 @@
 {
   "name": "eslint-plugin-tailwind-design-tokens",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "ESLint plugin that flags hardcoded colors and default Tailwind palette classes, steering you toward your design-system tokens.",
   "keywords": [
     "eslint",

@@ -47,7 +47,7 @@ const cls = 'bg-ink text-muted';
   cssFile?: string;    // Tailwind v4: path to a CSS file with a @theme block
   configFile?: string; // Tailwind v3: path to tailwind.config.js
   tokens?: Record<string, string>; // inline { color: tokenName } map
-  allow?: string[];    // color values to ignore (raw or normalized)
+  allow?: string[];    // color values to ignore (raw, normalized, or /regex/)
 }
 ```
 
@@ -57,14 +57,17 @@ const cls = 'bg-ink text-muted';
   palettes flatten to `family-shade`; a `DEFAULT` key maps to the bare family name.
 - **`tokens`** — an explicit map for tokens that don't live in a Tailwind file.
 - **`allow`** — values to never flag (e.g. `'transparent'`, a deliberate brand hex). Matched against
-  both the raw and normalized form, so `'#0a0a0a'` also allows `#0A0A0A`.
+  both the raw and normalized form, so `'#0a0a0a'` also allows `#0A0A0A`. An entry wrapped in
+  slashes is treated as a regular expression (`/pattern/` or `/pattern/flags`), which is handy for
+  migrations — e.g. `'/^rgb\\(/'` ignores every `rgb()` color. A malformed pattern is a config
+  error and fails fast.
 
 Sources merge, later winning on conflict: **cssFile < configFile < tokens**.
 
 ```js
 'tailwind-design-tokens/no-hardcoded-colors': ['error', {
   cssFile: './src/styles/globals.css',
-  allow: ['transparent', 'currentColor'],
+  allow: ['transparent', 'currentColor', '/^rgb\\(/'],
 }]
 ```
 

@@ -2,6 +2,9 @@ node_modules/
 dist/
 coverage/
 
+# The example installs the local plugin via file:..; its lockfile is noise, not shipped or CI-run.
+examples/package-lock.json
+
 *.log
 npm-debug.log*
 yarn-debug.log*

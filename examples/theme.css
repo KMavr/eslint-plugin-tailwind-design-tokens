@@ -1,0 +1,5 @@
+/* Tailwind v4 design tokens — read by no-hardcoded-colors via the `cssFile` option. */
+@theme {
+  --color-ink: #0a0a0a;
+  --color-primary: #2563eb;
+}

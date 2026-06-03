@@ -12,9 +12,13 @@ import rule from '../../src/rules/no-hardcoded-colors';
  *
  * For each detected color:
  *   - if its normalized value maps to a token  -> messageId `useDesignToken`,
- *       data { color: <raw>, token: <name> }
+ *       data { color: <raw>, token: <name> }, plus a `replaceWithToken`
+ *       suggestion that rewrites the color in place (string Literals only)
  *   - otherwise                                -> messageId `noHardcodedColor`,
  *       data { color: <raw> }
+ *
+ * Suggestions are only offered on plain string Literals: the in-place range math
+ * assumes a single opening quote, which does not hold for TemplateLiteral quasis.
  *
  * Options: [{ cssFile?, configFile?, tokens?, allow? }]. These tests use the
  * inline `tokens` map (file-based loading is covered in tokens.test.ts). `allow`
@@ -50,16 +54,72 @@ ruleTester.run('no-hardcoded-colors', rule, {
       errors: [{ messageId: 'noHardcodedColor', data: { color: '#0a0a0a' } }],
     },
     {
-      // hex that maps to a token -> suggest the token
+      // hex that maps to a token -> suggest swapping in the token in place
       code: 'const c = "#0a0a0a";',
       options: [{ tokens: { '#0a0a0a': 'ink' } }],
-      errors: [{ messageId: 'useDesignToken', data: { color: '#0a0a0a', token: 'ink' } }],
+      errors: [
+        {
+          messageId: 'useDesignToken',
+          data: { color: '#0a0a0a', token: 'ink' },
+          suggestions: [
+            {
+              messageId: 'replaceWithToken',
+              data: { token: 'ink' },
+              output: 'const c = "ink";',
+            },
+          ],
+        },
+      ],
     },
     {
       // token match is normalization-aware: written #FFF, token defined #ffffff
       code: 'const c = "#FFF";',
       options: [{ tokens: { '#ffffff': 'paper' } }],
-      errors: [{ messageId: 'useDesignToken', data: { color: '#FFF', token: 'paper' } }],
+      errors: [
+        {
+          messageId: 'useDesignToken',
+          data: { color: '#FFF', token: 'paper' },
+          suggestions: [
+            {
+              messageId: 'replaceWithToken',
+              data: { token: 'paper' },
+              output: 'const c = "paper";',
+            },
+          ],
+        },
+      ],
+    },
+    {
+      // Tailwind arbitrary value with a token match -> rewrite the whole
+      // prefix-[#hex] to the utility form, dropping the brackets (bg-paper, not bg-[paper])
+      code: 'const c = "bg-[#fff]";',
+      options: [{ tokens: { '#ffffff': 'paper' } }],
+      errors: [
+        {
+          messageId: 'useDesignToken',
+          data: { color: '#fff', token: 'paper' },
+          suggestions: [
+            {
+              messageId: 'replaceWithToken',
+              data: { token: 'paper' },
+              output: 'const c = "bg-paper";',
+            },
+          ],
+        },
+      ],
+    },
+    {
+      // template literal quasi with a token match -> reported, but NO suggestion
+      // (quote-offset range math is unsafe for quasis)
+      code: 'const c = `#0a0a0a`;',
+      options: [{ tokens: { '#0a0a0a': 'ink' } }],
+      errors: [
+        {
+          messageId: 'useDesignToken',
+          data: { color: '#0a0a0a', token: 'ink' },
+          suggestions: [],
+        },
+      ],
     },
     {
       // Tailwind arbitrary value carries a hardcoded hex

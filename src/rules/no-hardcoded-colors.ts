@@ -14,7 +14,9 @@ const rule: Rule.RuleModule = {
       noHardcodedColor:
         'Unexpected hardcoded color "{{ color }}". Use a design-system token instead.',
       useDesignToken: 'Replace hardcoded color "{{ color }}" with the design token "{{ token }}".',
+      replaceWithToken: 'Replace with design token "{{ token }}".',
     },
+    hasSuggestions: true,
     schema: [
       {
         type: 'object',
@@ -34,8 +36,8 @@ const rule: Rule.RuleModule = {
     const tokens = loadTokens(options, context.cwd);
     const allow = new Set(options.allow ?? []);
 
-    const checkString = (node: Rule.Node, value: string) => {
-      findColors(value).forEach(({ raw, normalized }) => {
+    const checkString = (node: Rule.Node, value: string, fixable: boolean) => {
+      findColors(value).forEach(({ raw, normalized, index }) => {
         if (allow.has(raw) || allow.has(normalized)) return;
 
         const token = tokens[normalized];
@@ -44,6 +46,23 @@ const rule: Rule.RuleModule = {
             node,
             messageId: 'useDesignToken',
             data: { color: raw, token },
+            suggest: fixable
+              ? [
+                  {
+                    messageId: 'replaceWithToken',
+                    data: { token },
+                    fix(fixer) {
+                      const before = value[index - 1];
+                      const after = value[index + raw.length];
+                      const bracketed = before === '[' && after === ']';
+
+                      const start = node.range![0] + 1 + index - (bracketed ? 1 : 0);
+                      const length = raw.length + (bracketed ? 2 : 0);
+                      return fixer.replaceTextRange([start, start + length], token);
+                    },
+                  },
+                ]
+              : [],
           });
         } else {
           context.report({
@@ -57,10 +76,10 @@ const rule: Rule.RuleModule = {
 
     return {
       Literal(node) {
-        if (typeof node.value === 'string') checkString(node, node.value);
+        if (typeof node.value === 'string') checkString(node, node.value, true);
       },
       TemplateLiteral(node) {
-        node.quasis.forEach((q) => checkString(node, q.value.raw));
+        node.quasis.forEach((q) => checkString(node, q.value.raw, false));
       },
     };
   },

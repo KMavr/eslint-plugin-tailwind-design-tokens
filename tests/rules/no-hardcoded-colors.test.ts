@@ -20,6 +20,12 @@ import rule from '../../src/rules/no-hardcoded-colors';
  * Suggestions are only offered on plain string Literals: the in-place range math
  * assumes a single opening quote, which does not hold for TemplateLiteral quasis.
  *
+ * Autofix (`--fix`, top-level `output`) is applied ONLY to the unambiguous
+ * arbitrary-value case: a bracketed prefix-[#hex] on a Literal is rewritten to
+ * the utility form (bg-[#fff] -> bg-paper). Bare colors and quasis are never
+ * autofixed — they stay suggestion-only — so a bare-color token match asserts no
+ * top-level `output`.
+ *
  * Options: [{ cssFile?, configFile?, tokens?, allow? }]. These tests use the
  * inline `tokens` map (file-based loading is covered in tokens.test.ts). `allow`
  * whitelists specific colors by raw or normalized value.
@@ -54,7 +60,8 @@ ruleTester.run('no-hardcoded-colors', rule, {
       errors: [{ messageId: 'noHardcodedColor', data: { color: '#0a0a0a' } }],
     },
     {
-      // hex that maps to a token -> suggest swapping in the token in place
+      // bare hex that maps to a token -> suggestion only, NOT autofixed
+      // (no top-level `output` => --fix leaves ambiguous bare colors untouched)
       code: 'const c = "#0a0a0a";',
       options: [{ tokens: { '#0a0a0a': 'ink' } }],
       errors: [
@@ -90,10 +97,12 @@ ruleTester.run('no-hardcoded-colors', rule, {
       ],
     },
     {
-      // Tailwind arbitrary value with a token match -> rewrite the whole
-      // prefix-[#hex] to the utility form, dropping the brackets (bg-paper, not bg-[paper])
+      // Tailwind arbitrary value with a token match -> AUTOFIXED to the utility
+      // form, dropping the brackets (bg-paper, not bg-[paper]). Top-level `output`
+      // asserts the --fix result; the suggestion mirrors it.
       code: 'const c = "bg-[#fff]";',
       options: [{ tokens: { '#ffffff': 'paper' } }],
+      output: 'const c = "bg-paper";',
       errors: [
         {
           messageId: 'useDesignToken',
@@ -103,6 +112,25 @@ ruleTester.run('no-hardcoded-colors', rule, {
               messageId: 'replaceWithToken',
               data: { token: 'paper' },
               output: 'const c = "bg-paper";',
+            },
+          ],
+        },
+      ],
+    },
+    {
+      // autofix works for any color-affecting prefix, not just bg-
+      code: 'const c = "text-[#0a0a0a]";',
+      options: [{ tokens: { '#0a0a0a': 'ink' } }],
+      output: 'const c = "text-ink";',
+      errors: [
+        {
+          messageId: 'useDesignToken',
+          data: { color: '#0a0a0a', token: 'ink' },
+          suggestions: [
+            {
+              messageId: 'replaceWithToken',
+              data: { token: 'ink' },
+              output: 'const c = "text-ink";',
             },
           ],
         },

@@ -17,6 +17,7 @@ const rule: Rule.RuleModule = {
       replaceWithToken: 'Replace with design token "{{ token }}".',
     },
     hasSuggestions: true,
+    fixable: 'code',
     schema: [
       {
         type: 'object',
@@ -42,24 +43,27 @@ const rule: Rule.RuleModule = {
 
         const token = tokens[normalized];
         if (token) {
+          const before = value[index - 1];
+          const after = value[index + raw.length];
+          const bracketed = before === '[' && after === ']';
+
+          const applyFix = (fixer: Rule.RuleFixer) => {
+            const start = node.range![0] + 1 + index - (bracketed ? 1 : 0);
+            const length = raw.length + (bracketed ? 2 : 0);
+            return fixer.replaceTextRange([start, start + length], token);
+          };
+
           context.report({
             node,
             messageId: 'useDesignToken',
             data: { color: raw, token },
+            ...(fixable && bracketed ? { fix: applyFix } : {}),
             suggest: fixable
               ? [
                   {
                     messageId: 'replaceWithToken',
                     data: { token },
-                    fix(fixer) {
-                      const before = value[index - 1];
-                      const after = value[index + raw.length];
-                      const bracketed = before === '[' && after === ']';
-
-                      const start = node.range![0] + 1 + index - (bracketed ? 1 : 0);
-                      const length = raw.length + (bracketed ? 2 : 0);
-                      return fixer.replaceTextRange([start, start + length], token);
-                    },
+                    fix: applyFix,
                   },
                 ]
               : [],

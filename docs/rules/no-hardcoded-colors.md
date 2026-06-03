@@ -8,7 +8,8 @@ This rule scans every string literal and template-literal quasi for color values
 It detects:
 
 - **Hex** — `#fff`, `#ffffff`, `#ffffffff` (3/4/6/8 digits)
-- **Functional** — `rgb()` / `rgba()`, `hsl()` / `hsla()`, `oklch()`
+- **Functional** — `rgb()` / `rgba()`, `hsl()` / `hsla()`, `hwb()`, `lab()`, `lch()`, `oklab()`,
+  `oklch()`
 - **Tailwind arbitrary values** — the color inside `bg-[#0a0a0a]`, `text-[rgb(10_10_10)]`, etc.
 
 Because it scans whole strings, it catches colors in className strings, inline `style` objects, and

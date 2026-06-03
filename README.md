@@ -87,10 +87,10 @@ Or configure the rules directly to add a token source:
 
 ## Rules
 
-| Rule                                                         | Description                                                                                                                                    |
-| ------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| [`no-hardcoded-colors`](./docs/rules/no-hardcoded-colors.md) | Disallow hardcoded color literals (hex, `rgb()`, `hsl()`, `oklch()`) anywhere in a string; suggests the matching design token when one exists. |
-| [`no-default-palette`](./docs/rules/no-default-palette.md)   | Disallow default Tailwind palette classes (`text-red-500`, `bg-gray-100`, …).                                                                  |
+| Rule                                                         | Description                                                                                                                                                                          |
+| ------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| [`no-hardcoded-colors`](./docs/rules/no-hardcoded-colors.md) | Disallow hardcoded color literals (hex, `rgb()`, `hsl()`, `hwb()`, `lab()`, `lch()`, `oklab()`, `oklch()`) anywhere in a string; suggests the matching design token when one exists. |
+| [`no-default-palette`](./docs/rules/no-default-palette.md)   | Disallow default Tailwind palette classes (`text-red-500`, `bg-gray-100`, …).                                                                                                        |
 
 ## Configuring tokens
 
@@ -113,8 +113,8 @@ sources win on conflict: **cssFile < configFile < tokens**):
 ```
 
 Color values are normalized before matching, so `#FFF` in your code matches a token defined as
-`#ffffff`. Hex, `rgb()`, `hsl()`, and `oklch()` are all detected, including inside Tailwind
-arbitrary values like `bg-[#0a0a0a]`.
+`#ffffff`. Hex and the CSS color functions `rgb()`, `hsl()`, `hwb()`, `lab()`, `lch()`, `oklab()`,
+and `oklch()` are all detected, including inside Tailwind arbitrary values like `bg-[#0a0a0a]`.
 
 ## How it works
 

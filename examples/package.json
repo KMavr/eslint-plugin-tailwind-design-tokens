@@ -1,0 +1,13 @@
+{
+  "name": "eslint-plugin-tailwind-design-tokens-example",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Runnable example wiring the plugin against Tailwind v4 @theme and v3 config token sources.",
+  "scripts": {
+    "lint": "eslint ."
+  },
+  "devDependencies": {
+    "eslint": ">=9",
+    "eslint-plugin-tailwind-design-tokens": "file:.."
+  }
+}

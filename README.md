@@ -2,6 +2,7 @@
 
 [![CI](https://github.com/KMavr/eslint-plugin-tailwind-design-tokens/actions/workflows/ci.yml/badge.svg)](https://github.com/KMavr/eslint-plugin-tailwind-design-tokens/actions/workflows/ci.yml)
 [![npm version](https://img.shields.io/npm/v/eslint-plugin-tailwind-design-tokens.svg)](https://www.npmjs.com/package/eslint-plugin-tailwind-design-tokens)
+[![npm downloads](https://img.shields.io/npm/dm/eslint-plugin-tailwind-design-tokens.svg)](https://www.npmjs.com/package/eslint-plugin-tailwind-design-tokens)
 
 ESLint plugin that flags hardcoded colors and default Tailwind palette classes, steering you toward
 your design-system tokens.
@@ -17,6 +18,17 @@ which token to use instead.
 It understands where tokens live across Tailwind versions — a v4 `@theme` block, a v3
 `tailwind.config.js`, or an inline map — so it works whatever your setup.
 
+## Before / after
+
+```jsx
+// ✗ flagged — stock palette class + hardcoded hex
+<button className="bg-[#0a0a0a] text-red-500" />;
+
+// ✓ design-system tokens
+// (when #0a0a0a maps to a token, bg-[#0a0a0a] → bg-ink is auto-fixable)
+<button className="bg-ink text-primary" />;
+```
+
 ## Install
 
 ```sh
@@ -28,6 +40,10 @@ pnpm add --save-dev eslint-plugin-tailwind-design-tokens
 ```
 
 Requires ESLint 9+ (both the legacy `.eslintrc` and the flat config systems are supported).
+
+Every release is published from CI with
+[npm provenance](https://docs.npmjs.com/generating-provenance-statements) attestations, so each
+version on npm links back to the exact commit and workflow that built it.
 
 ## Usage
 
@@ -87,10 +103,19 @@ Or configure the rules directly to add a token source:
 
 ## Rules
 
-| Rule                                                         | Description                                                                                                                                                                          |
-| ------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| [`no-hardcoded-colors`](./docs/rules/no-hardcoded-colors.md) | Disallow hardcoded color literals (hex, `rgb()`, `hsl()`, `hwb()`, `lab()`, `lch()`, `oklab()`, `oklch()`) anywhere in a string; suggests the matching design token when one exists. |
-| [`no-default-palette`](./docs/rules/no-default-palette.md)   | Disallow default Tailwind palette classes (`text-red-500`, `bg-gray-100`, …).                                                                                                        |
+<!-- begin auto-generated rules list -->
+
+💼 Configurations enabled in.\
+✅ Set in the `recommended` configuration.\
+🔧 Automatically fixable by the [`--fix` CLI option](https://eslint.org/docs/user-guide/command-line-interface#--fix).\
+💡 Manually fixable by [editor suggestions](https://eslint.org/docs/latest/use/core-concepts#rule-suggestions).
+
+| Name                                                     | Description                                                                                            | 💼  | 🔧  | 💡  |
+| :------------------------------------------------------- | :----------------------------------------------------------------------------------------------------- | :-- | :-- | :-- |
+| [no-default-palette](docs/rules/no-default-palette.md)   | Disallow default Tailwind palette colors; use design-system tokens                                     | ✅  |     |     |
+| [no-hardcoded-colors](docs/rules/no-hardcoded-colors.md) | Disallow hardcoded color values (hex, rgb, hsl, hwb, lab, lch, oklab, oklch); use design-system tokens | ✅  | 🔧  | 💡  |
+
+<!-- end auto-generated rules list -->
 
 ## Configuring tokens
 
@@ -128,7 +153,8 @@ Token files are read once and cached per ESLint process, invalidated by file mti
 
 ## Contributing
 
-Issues and PRs welcome. Local development:
+Issues and PRs welcome — see [CONTRIBUTING.md](./CONTRIBUTING.md) for setup, the test/doc workflow,
+and commit conventions. Quick start:
 
 ```sh
 npm install

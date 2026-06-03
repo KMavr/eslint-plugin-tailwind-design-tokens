@@ -83,6 +83,26 @@ describe('colors', () => {
     it('should normalize oklch', () => {
       expect(normalizeColor('OKLCH(0.2_0_0)')).toBe('oklch(0.2 0 0)');
     });
+
+    it('should normalize oklab', () => {
+      expect(normalizeColor('OKLAB(0.5_0.1_0.1)')).toBe('oklab(0.5 0.1 0.1)');
+    });
+
+    it('should normalize lab', () => {
+      expect(normalizeColor('LAB(52% 40 60)')).toBe('lab(52% 40 60)');
+    });
+
+    it('should normalize lch', () => {
+      expect(normalizeColor('lch(52%, 60, 40)')).toBe('lch(52% 60 40)');
+    });
+
+    it('should normalize hwb', () => {
+      expect(normalizeColor('HWB(120 0% 0%)')).toBe('hwb(120 0% 0%)');
+    });
+
+    it('should normalize a function color with a slash alpha', () => {
+      expect(normalizeColor('lab(52%_40_60_/_0.5)')).toBe('lab(52% 40 60 / 0.5)');
+    });
   });
 
   describe('normalizeColor — non-colors', () => {
@@ -123,6 +143,29 @@ describe('colors', () => {
     it('should find hsl/oklch function literals', () => {
       expect(findColors('hsl(0 0% 4%)').map((m) => m.normalized)).toEqual(['hsl(0 0% 4%)']);
       expect(findColors('oklch(0.2 0 0)').map((m) => m.normalized)).toEqual(['oklch(0.2 0 0)']);
+    });
+
+    it('should find oklab/lab/lch/hwb function literals', () => {
+      expect(findColors('oklab(0.5 0.1 0.1)').map((m) => m.normalized)).toEqual([
+        'oklab(0.5 0.1 0.1)',
+      ]);
+      expect(findColors('lab(52% 40 60)').map((m) => m.normalized)).toEqual(['lab(52% 40 60)']);
+      expect(findColors('lch(52% 60 40)').map((m) => m.normalized)).toEqual(['lch(52% 60 40)']);
+      expect(findColors('hwb(120 0% 0%)').map((m) => m.normalized)).toEqual(['hwb(120 0% 0%)']);
+    });
+
+    it('should find oklab inside a Tailwind arbitrary value (underscores)', () => {
+      const matches = findColors('text-[oklab(0.5_0.1_0.1)]');
+      expect(matches).toHaveLength(1);
+      expect(matches[0]).toMatchObject({
+        raw: 'oklab(0.5_0.1_0.1)',
+        normalized: 'oklab(0.5 0.1 0.1)',
+      });
+    });
+
+    it('should not split oklab/oklch into a bare lab/lch match', () => {
+      expect(findColors('oklab(0.5 0.1 0.1)')).toHaveLength(1);
+      expect(findColors('oklch(0.2 0 0)')).toHaveLength(1);
     });
 
     it('should not match hex-like substrings of longer alphanumeric runs', () => {

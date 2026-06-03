@@ -87,10 +87,19 @@ Or configure the rules directly to add a token source:
 
 ## Rules
 
-| Rule                                                         | Description                                                                                                                                                                          |
-| ------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| [`no-hardcoded-colors`](./docs/rules/no-hardcoded-colors.md) | Disallow hardcoded color literals (hex, `rgb()`, `hsl()`, `hwb()`, `lab()`, `lch()`, `oklab()`, `oklch()`) anywhere in a string; suggests the matching design token when one exists. |
-| [`no-default-palette`](./docs/rules/no-default-palette.md)   | Disallow default Tailwind palette classes (`text-red-500`, `bg-gray-100`, …).                                                                                                        |
+<!-- begin auto-generated rules list -->
+
+💼 Configurations enabled in.\
+✅ Set in the `recommended` configuration.\
+🔧 Automatically fixable by the [`--fix` CLI option](https://eslint.org/docs/user-guide/command-line-interface#--fix).\
+💡 Manually fixable by [editor suggestions](https://eslint.org/docs/latest/use/core-concepts#rule-suggestions).
+
+| Name                                                     | Description                                                                                            | 💼  | 🔧  | 💡  |
+| :------------------------------------------------------- | :----------------------------------------------------------------------------------------------------- | :-- | :-- | :-- |
+| [no-default-palette](docs/rules/no-default-palette.md)   | Disallow default Tailwind palette colors; use design-system tokens                                     | ✅  |     |     |
+| [no-hardcoded-colors](docs/rules/no-hardcoded-colors.md) | Disallow hardcoded color values (hex, rgb, hsl, hwb, lab, lch, oklab, oklch); use design-system tokens | ✅  | 🔧  | 💡  |
+
+<!-- end auto-generated rules list -->
 
 ## Configuring tokens
 

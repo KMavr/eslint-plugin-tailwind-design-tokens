@@ -31,4 +31,6 @@ jobs:
         if: matrix.eslint == '10'
       - run: npm run typecheck
         if: matrix.eslint == '10'
+      - run: npm run doc:check
+        if: matrix.eslint == '10'
       - run: npm test -- --run

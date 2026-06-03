@@ -41,16 +41,19 @@ Out of scope (not reported): design-system classes (`text-primary`), arbitrary v
 
 ```ts
 {
-  allow?: string[]; // class tokens or color parts to ignore
+  allow?: string[]; // class tokens, color parts, or /regex/ to ignore
 }
 ```
 
 - **`allow`** — entries to never flag, useful during a migration. Matches either the full class
-  token (`'bg-gray-100'`) or just the color part (`'gray-100'`).
+  token (`'bg-gray-100'`) or just the color part (`'gray-100'`). An entry wrapped in slashes is
+  treated as a regular expression (`/pattern/` or `/pattern/flags`) tested against both forms — e.g.
+  `'/^red-/'` whitelists the entire red family while you migrate it. A malformed pattern is a config
+  error and fails fast.
 
 ```js
 'tailwind-design-tokens/no-default-palette': ['error', {
-  allow: ['gray-100', 'bg-white'],
+  allow: ['gray-100', 'bg-white', '/^red-/'],
 }]
 ```
 

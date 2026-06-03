@@ -43,6 +43,8 @@ ruleTester.run('no-default-palette', rule, {
     { code: 'const c = "text-red-500";', options: [{ allow: ['red-500'] }] },
     // explicitly allowed by full class token
     { code: 'const c = "bg-gray-100";', options: [{ allow: ['bg-gray-100'] }] },
+    // migration: a /regex/ allow entry whitelists a whole palette family
+    { code: 'const c = "text-red-500 ring-red-200";', options: [{ allow: ['/^red-/'] }] },
     // JSX with only safe classes
     '<div className="flex text-primary" />;',
   ],

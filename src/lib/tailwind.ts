@@ -6,6 +6,10 @@ const TAILWIND_COLOR_PREFIXES = [
   'border-r-',
   'border-t-',
   'border-b-',
+  'border-x-',
+  'border-y-',
+  'border-s-',
+  'border-e-',
   'ring-',
   'outline-',
   'fill-',
@@ -19,6 +23,7 @@ const TAILWIND_COLOR_PREFIXES = [
   'via-',
   'placeholder-',
   'caret-',
+  'ring-offset-',
 ];
 
 // Default Tailwind palette color families

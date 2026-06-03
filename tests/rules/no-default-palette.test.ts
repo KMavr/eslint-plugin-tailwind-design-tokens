@@ -59,6 +59,20 @@ ruleTester.run('no-default-palette', rule, {
       errors: [{ messageId: 'noDefaultPalette' }, { messageId: 'noDefaultPalette' }],
     },
     {
+      // newly covered prefixes are flagged end-to-end
+      code: 'const c = "ring-offset-blue-600 border-x-red-500";',
+      errors: [
+        {
+          messageId: 'noDefaultPalette',
+          data: { className: 'ring-offset-blue-600', color: 'blue-600' },
+        },
+        {
+          messageId: 'noDefaultPalette',
+          data: { className: 'border-x-red-500', color: 'red-500' },
+        },
+      ],
+    },
+    {
       // template literal quasi
       code: 'const c = `bg-red-500 ${x}`;',
       errors: [{ messageId: 'noDefaultPalette' }],

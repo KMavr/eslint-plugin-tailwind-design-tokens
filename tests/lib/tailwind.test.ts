@@ -45,6 +45,24 @@ describe('isDefaultPaletteClass', () => {
     expect(isDefaultPaletteClass('border-b-blue-700')).toBe('blue-700');
   });
 
+  it('should flag the axis/logical border prefixes (border-x/y/s/e-)', () => {
+    expect(isDefaultPaletteClass('border-x-blue-700')).toBe('blue-700');
+    expect(isDefaultPaletteClass('border-y-blue-700')).toBe('blue-700');
+    expect(isDefaultPaletteClass('border-s-blue-700')).toBe('blue-700');
+    expect(isDefaultPaletteClass('border-e-blue-700')).toBe('blue-700');
+  });
+
+  it('should flag ring-offset color utilities', () => {
+    expect(isDefaultPaletteClass('ring-offset-red-500')).toBe('red-500');
+    expect(isDefaultPaletteClass('ring-offset-slate-50')).toBe('slate-50');
+  });
+
+  it('should not flag non-color uses of the new prefixes (widths/offsets)', () => {
+    expect(isDefaultPaletteClass('ring-offset-2')).toBeNull();
+    expect(isDefaultPaletteClass('border-x-4')).toBeNull();
+    expect(isDefaultPaletteClass('border-y-0')).toBeNull();
+  });
+
   it('should accept the shade boundaries (50, X00, 950)', () => {
     expect(isDefaultPaletteClass('text-slate-50')).toBe('slate-50');
     expect(isDefaultPaletteClass('text-slate-900')).toBe('slate-900');

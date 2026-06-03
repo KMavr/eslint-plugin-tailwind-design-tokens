@@ -153,7 +153,8 @@ Token files are read once and cached per ESLint process, invalidated by file mti
 
 ## Contributing
 
-Issues and PRs welcome. Local development:
+Issues and PRs welcome — see [CONTRIBUTING.md](./CONTRIBUTING.md) for setup, the test/doc workflow,
+and commit conventions. Quick start:
 
 ```sh
 npm install

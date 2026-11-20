@@ -97,5 +97,30 @@ ruleTester.run('no-default-palette', rule, {
       options: [{ allow: ['blue-500'] }],
       errors: [{ messageId: 'noDefaultPalette' }],
     },
+    {
+      // tab-separated classes in a string literal
+      code: 'const c = "flex\\tbg-red-500";',
+      errors: [
+        { messageId: 'noDefaultPalette', data: { className: 'bg-red-500', color: 'red-500' } },
+      ],
+    },
+    {
+      // newline-separated classes in a template literal, no surrounding spaces
+      code: 'const c = `flex\nbg-red-500\ntext-blue-500`;',
+      errors: [
+        { messageId: 'noDefaultPalette', data: { className: 'bg-red-500', color: 'red-500' } },
+        { messageId: 'noDefaultPalette', data: { className: 'text-blue-500', color: 'blue-500' } },
+      ],
+    },
+    {
+      // indented multi-line class list
+      code: 'const c = `\n  flex\n  hover:bg-gray-100\n`;',
+      errors: [
+        {
+          messageId: 'noDefaultPalette',
+          data: { className: 'hover:bg-gray-100', color: 'gray-100' },
+        },
+      ],
+    },
   ],
 });

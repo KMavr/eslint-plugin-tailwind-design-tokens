@@ -9,7 +9,7 @@ export interface TokenOptions {
   tokens?: Record<string, string>;
 }
 
-const THEME_REGEX = /@theme\s*\{([^}]+)\}/s;
+const THEME_REGEX = /@theme(?:\s+[\w-]+)*\s*\{([^}]+)\}/g;
 const COLOR_REGEX = /--color-([\w-]+)\s*:\s*([^;]+);/g;
 
 interface CacheEntry {
@@ -61,14 +61,15 @@ const loadCssTokens = (cssFile: string | undefined, cwd: string): Record<string,
   const abs = path.resolve(cwd, cssFile);
   return readThroughCache(abs, () => {
     const content = fs.readFileSync(abs, 'utf-8');
-    const theme = content.match(THEME_REGEX);
-    if (!theme) return {};
+    const themeBodies = [...content.matchAll(THEME_REGEX)].map((theme) => theme[1]);
 
     return Object.fromEntries(
-      [...theme[1].matchAll(COLOR_REGEX)].flatMap((m) => {
-        const value = normalizeColor(m[2].trim());
-        return value ? [[value, m[1]]] : [];
-      }),
+      themeBodies
+        .flatMap((body) => [...body.matchAll(COLOR_REGEX)])
+        .flatMap((m) => {
+          const value = normalizeColor(m[2].trim());
+          return value ? [[value, m[1]]] : [];
+        }),
     );
   });
 };

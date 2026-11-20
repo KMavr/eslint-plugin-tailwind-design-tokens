@@ -26,7 +26,7 @@ const rule: Rule.RuleModule = {
     const isAllowed = makeAllowMatcher(context.options[0]?.allow ?? []);
 
     const checkString = (node: Rule.Node, value: string) => {
-      const tokens = value.split(' ');
+      const tokens = value.split(/\s+/);
 
       tokens.forEach((token) => {
         const colorPart = isDefaultPaletteClass(token);

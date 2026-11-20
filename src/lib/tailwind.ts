@@ -56,7 +56,11 @@ const DEFAULT_PALETTE = [
 const PALETTE_SHADE_REGEX = new RegExp(`^(${DEFAULT_PALETTE.join('|')})-(50|[1-9]00|950)$`);
 
 export const isDefaultPaletteClass = (className: string): string | null => {
-  const sanitized = className.replace(/^!/, '').replace(/!$/, '').replace(/\/.*$/, '');
+  const sanitized = className
+    .slice(className.lastIndexOf(':') + 1)
+    .replace(/^!/, '')
+    .replace(/!$/, '')
+    .replace(/\/.*$/, '');
   const colorPart = TAILWIND_COLOR_PREFIXES.filter((prefix) => sanitized.startsWith(prefix))
     .map((prefix) => sanitized.slice(prefix.length))
     .find((part) => PALETTE_SHADE_REGEX.test(part));

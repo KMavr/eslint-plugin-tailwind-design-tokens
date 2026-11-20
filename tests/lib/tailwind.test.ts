@@ -18,6 +18,7 @@ import { isDefaultPaletteClass } from '../../src/lib/tailwind';
  *     - trailing important `!`  (Tailwind v4:  text-red-500!)
  *     - leading important `!`   (Tailwind v3:  !text-red-500)
  *     - opacity modifier `/<n>` (bg-red-500/50)
+ *     - variant prefixes        (hover:, md:dark:, [&:hover]:)
  *
  *   Out of scope (return null): design-system classes (text-primary), arbitrary
  *   values (bg-[#fff] — handled by colors.ts), white/black (no shade), and any
@@ -107,5 +108,28 @@ describe('isDefaultPaletteClass', () => {
 
   it('should tolerate an opacity modifier and exclude it from the result', () => {
     expect(isDefaultPaletteClass('bg-red-500/50')).toBe('red-500');
+  });
+
+  it('should flag classes with a variant prefix', () => {
+    expect(isDefaultPaletteClass('hover:bg-red-500')).toBe('red-500');
+    expect(isDefaultPaletteClass('group-hover:border-l-gray-200')).toBe('gray-200');
+  });
+
+  it('should flag classes with stacked variant prefixes', () => {
+    expect(isDefaultPaletteClass('md:dark:text-blue-500')).toBe('blue-500');
+  });
+
+  it('should flag classes with an arbitrary variant containing a colon', () => {
+    expect(isDefaultPaletteClass('[&:hover]:bg-red-500')).toBe('red-500');
+  });
+
+  it('should tolerate variants combined with important and opacity modifiers', () => {
+    expect(isDefaultPaletteClass('hover:!bg-red-500')).toBe('red-500');
+    expect(isDefaultPaletteClass('dark:bg-red-500/50')).toBe('red-500');
+  });
+
+  it('should return null for variant-prefixed non-palette classes', () => {
+    expect(isDefaultPaletteClass('hover:bg-primary')).toBeNull();
+    expect(isDefaultPaletteClass('md:flex')).toBeNull();
   });
 });

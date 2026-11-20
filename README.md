@@ -3,6 +3,13 @@
 [![CI](https://github.com/KMavr/eslint-plugin-tailwind-design-tokens/actions/workflows/ci.yml/badge.svg)](https://github.com/KMavr/eslint-plugin-tailwind-design-tokens/actions/workflows/ci.yml)
 [![npm version](https://img.shields.io/npm/v/eslint-plugin-tailwind-design-tokens.svg)](https://www.npmjs.com/package/eslint-plugin-tailwind-design-tokens)
 [![npm downloads](https://img.shields.io/npm/dm/eslint-plugin-tailwind-design-tokens.svg)](https://www.npmjs.com/package/eslint-plugin-tailwind-design-tokens)
+[![install size](https://packagephobia.com/badge?p=eslint-plugin-tailwind-design-tokens)](https://packagephobia.com/result?p=eslint-plugin-tailwind-design-tokens)
+[![node](https://img.shields.io/node/v/eslint-plugin-tailwind-design-tokens.svg)](https://www.npmjs.com/package/eslint-plugin-tailwind-design-tokens)
+[![license](https://img.shields.io/npm/l/eslint-plugin-tailwind-design-tokens.svg)](./LICENSE)
+[![types](https://img.shields.io/npm/types/eslint-plugin-tailwind-design-tokens.svg)](https://www.npmjs.com/package/eslint-plugin-tailwind-design-tokens)
+[![eslint](https://img.shields.io/npm/dependency-version/eslint-plugin-tailwind-design-tokens/peer/eslint)](https://eslint.org)
+[![Tailwind](https://img.shields.io/badge/Tailwind-v3%20%7C%20v4-38bdf8?logo=tailwindcss&logoColor=white)](https://tailwindcss.com)
+[![Conventional Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-fe5196?logo=conventionalcommits&logoColor=white)](https://conventionalcommits.org)
 
 ESLint plugin that flags hardcoded colors and default Tailwind palette classes, steering you toward
 your design-system tokens.

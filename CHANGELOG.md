@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.3.1](https://github.com/KMavr/eslint-plugin-tailwind-design-tokens/compare/eslint-plugin-tailwind-design-tokens-v0.3.0...eslint-plugin-tailwind-design-tokens-v0.3.1) (2026-11-20)
+
+
+### Bug Fixes
+
+* detect default palette classes with variant prefixes ([95231a4](https://github.com/KMavr/eslint-plugin-tailwind-design-tokens/commit/95231a4013e582f55a68cae8ee2abcf1557219f3))
+* load tokens from all [@theme](https://github.com/theme) blocks including inline/static ([e6012ce](https://github.com/KMavr/eslint-plugin-tailwind-design-tokens/commit/e6012ce212edfc30fd930768b0347f450d9bf4d5))
+* split class lists on any whitespace ([c0151ee](https://github.com/KMavr/eslint-plugin-tailwind-design-tokens/commit/c0151eec70c907b74792029280abfdde870c9e59))
+
 ## [0.3.0](https://github.com/KMavr/eslint-plugin-tailwind-design-tokens/compare/eslint-plugin-tailwind-design-tokens-v0.2.0...eslint-plugin-tailwind-design-tokens-v0.3.0) (2026-06-03)
 
 ### Features

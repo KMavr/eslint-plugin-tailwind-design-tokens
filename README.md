@@ -14,6 +14,8 @@
 ESLint plugin that flags hardcoded colors and default Tailwind palette classes, steering you toward
 your design-system tokens.
 
+![eslint-plugin-tailwind-design-tokens demo](https://raw.githubusercontent.com/KMavr/eslint-plugin-tailwind-design-tokens/main/assets/demo.gif)
+
 ## Why
 
 A design system defines a finite color palette as tokens — `--color-ink`, `bg-primary`,

@@ -13,8 +13,9 @@ import { loadTokens } from '../../src/lib/tokens';
  *
  *   Sources (merged; later source wins on conflict): cssFile -> inline tokens.
  *
- *   - cssFile (Tailwind v4): read the file, find the `@theme { ... }` block, and
- *       extract every `--color-<name>: <value>;`. The token name is `<name>`
+ *   - cssFile (Tailwind v4): read the file, find every `@theme { ... }` block
+ *       (including modifiers like `@theme inline`/`@theme static`; later blocks
+ *       win), and extract every `--color-<name>: <value>;`. The token name is `<name>`
  *       (the `--color-` prefix removed). The value is run through normalizeColor;
  *       non-color values (and non-`--color-` vars) are ignored.
  *   - tokens (inline): a { color: name } map; keys are normalized before storing.
@@ -88,6 +89,56 @@ describe('tokens', () => {
       --color-bogus: not-a-color;
     }`);
       expect(loadTokens({ cssFile: 'globals.css' }, dir)).toEqual({ '#0a0a0a': 'ink' });
+    });
+
+    it('should read an @theme inline block', () => {
+      writeCss(`@theme inline {
+      --color-ink: #0a0a0a;
+    }`);
+      expect(loadTokens({ cssFile: 'globals.css' }, dir)).toEqual({ '#0a0a0a': 'ink' });
+    });
+
+    it('should read an @theme static block', () => {
+      writeCss(`@theme static {
+      --color-paper: #ffffff;
+    }`);
+      expect(loadTokens({ cssFile: 'globals.css' }, dir)).toEqual({ '#ffffff': 'paper' });
+    });
+
+    it('should merge colors from every @theme block in the file', () => {
+      writeCss(`@theme {
+      --color-ink: #0a0a0a;
+    }
+    :root { --background: #fafafa; }
+    @theme inline {
+      --color-surface: var(--background);
+      --color-brand: #aabbcc;
+    }
+    @theme static {
+      --color-paper: #ffffff;
+    }`);
+      expect(loadTokens({ cssFile: 'globals.css' }, dir)).toEqual({
+        '#0a0a0a': 'ink',
+        '#aabbcc': 'brand',
+        '#ffffff': 'paper',
+      });
+    });
+
+    it('should let a later @theme block win when two tokens share a color', () => {
+      writeCss(`@theme {
+      --color-ink: #0a0a0a;
+    }
+    @theme {
+      --color-text: #0a0a0a;
+    }`);
+      expect(loadTokens({ cssFile: 'globals.css' }, dir)).toEqual({ '#0a0a0a': 'text' });
+    });
+
+    it('should not treat similarly named at-rules as @theme', () => {
+      writeCss(`@theme-like {
+      --color-ink: #0a0a0a;
+    }`);
+      expect(loadTokens({ cssFile: 'globals.css' }, dir)).toEqual({});
     });
 
     it('should return {} when there is no @theme block', () => {

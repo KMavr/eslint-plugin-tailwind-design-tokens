@@ -3,7 +3,7 @@
 [![CI](https://github.com/KMavr/eslint-plugin-tailwind-design-tokens/actions/workflows/ci.yml/badge.svg)](https://github.com/KMavr/eslint-plugin-tailwind-design-tokens/actions/workflows/ci.yml)
 [![npm version](https://img.shields.io/npm/v/eslint-plugin-tailwind-design-tokens.svg)](https://www.npmjs.com/package/eslint-plugin-tailwind-design-tokens)
 [![npm downloads](https://img.shields.io/npm/dm/eslint-plugin-tailwind-design-tokens.svg)](https://www.npmjs.com/package/eslint-plugin-tailwind-design-tokens)
-[![install size](https://packagephobia.com/badge?p=eslint-plugin-tailwind-design-tokens)](https://packagephobia.com/result?p=eslint-plugin-tailwind-design-tokens)
+[![unpacked size](https://img.shields.io/npm/unpacked-size/eslint-plugin-tailwind-design-tokens.svg)](https://www.npmjs.com/package/eslint-plugin-tailwind-design-tokens)
 [![node](https://img.shields.io/node/v/eslint-plugin-tailwind-design-tokens.svg)](https://www.npmjs.com/package/eslint-plugin-tailwind-design-tokens)
 [![license](https://img.shields.io/npm/l/eslint-plugin-tailwind-design-tokens.svg)](./LICENSE)
 [![types](https://img.shields.io/npm/types/eslint-plugin-tailwind-design-tokens.svg)](https://www.npmjs.com/package/eslint-plugin-tailwind-design-tokens)

@@ -9,8 +9,15 @@ export interface ColorTokenOptions {
   tokens?: Record<string, string>;
 }
 
+export interface SpacingTokens {
+  base: string | null;
+  named: Record<string, string>;
+}
+
 const THEME_REGEX = /@theme(?:\s+[\w-]+)*\s*\{([^}]+)\}/g;
 const THEME_VAR_REGEX = /--([\w-]+)\s*:\s*([^;]+)/g;
+
+const DEFAULT_SPACING = '0.25rem';
 
 interface CacheEntry {
   mtimeMs: number;
@@ -138,3 +145,31 @@ export const loadColorTokens = (
   ...loadConfigColorTokens(options.configFile, cwd),
   ...normalizeMap(options.tokens ?? {}),
 });
+
+export const loadSpacingTokens = (
+  cssFile: string | undefined,
+  cwd = process.cwd(),
+): SpacingTokens => {
+  if (!cssFile) return { base: DEFAULT_SPACING, named: {} };
+  const abs = path.resolve(cwd, cssFile);
+
+  const vars = readThroughCache({
+    kind: 'spacing',
+    abs,
+    compute: () =>
+      Object.fromEntries(
+        readThemeVars(fs.readFileSync(abs, 'utf-8')).filter(
+          ([name]) => name === 'spacing' || name.startsWith('spacing-'),
+        ),
+      ),
+  });
+  const { spacing = DEFAULT_SPACING, ...rest } = vars;
+  return {
+    base: spacing === 'initial' ? null : spacing,
+    named: Object.fromEntries(
+      Object.entries(rest)
+        .filter(([, value]) => value !== 'initial')
+        .map(([name, value]) => [name.slice('spacing-'.length), value]),
+    ),
+  };
+};

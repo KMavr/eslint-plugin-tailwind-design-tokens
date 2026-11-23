@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import fs, { mkdtempSync, writeFileSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
-import { loadColorTokens } from '../../src/lib/tokens';
+import { loadColorTokens, loadSpacingTokens } from '../../src/lib/tokens';
 
 /**
  * Spec for src/lib/tokens.ts — CSS @theme + inline tokens.
@@ -19,6 +19,11 @@ import { loadColorTokens } from '../../src/lib/tokens';
  *       (the `--color-` prefix removed). The value is run through normalizeColor;
  *       non-color values (and non-`--color-` vars) are ignored.
  *   - tokens (inline): a { color: name } map; keys are normalized before storing.
+ *
+ * loadSpacingTokens(cssFile, cwd?): read `--spacing` (the scale base) and
+ *   `--spacing-<name>` tokens from every @theme block. Returns
+ *   { base, named }: base defaults to '0.25rem' when absent, is null when set to
+ *   `initial`; named maps <name> -> raw value, dropping `initial` entries.
  *
  *   Resolution: a relative cssFile is resolved against `cwd` (defaults to
  *   process.cwd()). Fail-soft: a missing/unparseable file yields no tokens from
@@ -244,6 +249,70 @@ describe('tokens', () => {
       fs.utimesSync(file, future, future);
 
       expect(loadColorTokens({ cssFile: 'globals.css' }, dir)).toEqual({ '#ffffff': 'ink' });
+    });
+  });
+
+  describe('loadSpacingTokens', () => {
+    it('should read --spacing as the base', () => {
+      writeCss(`@theme { --spacing: 0.5rem; }`);
+      expect(loadSpacingTokens('globals.css', dir)).toEqual({ base: '0.5rem', named: {} });
+    });
+
+    it('should default the base to 0.25rem when --spacing is absent', () => {
+      writeCss(`@theme { --color-ink: #0a0a0a; }`);
+      expect(loadSpacingTokens('globals.css', dir)).toEqual({ base: '0.25rem', named: {} });
+    });
+
+    it('should default the base when no cssFile is given', () => {
+      expect(loadSpacingTokens(undefined, dir)).toEqual({ base: '0.25rem', named: {} });
+    });
+
+    it('should default the base when the cssFile does not exist', () => {
+      expect(loadSpacingTokens('does-not-exist.css', dir)).toEqual({
+        base: '0.25rem',
+        named: {},
+      });
+    });
+
+    it('should return a null base when --spacing is initial', () => {
+      writeCss(`@theme { --spacing: initial; }`);
+      expect(loadSpacingTokens('globals.css', dir)).toEqual({ base: null, named: {} });
+    });
+
+    it('should read --spacing-* as named tokens with raw values', () => {
+      writeCss(`@theme { --spacing: 4px; --spacing-card: 24px; --spacing-gutter: 1.5rem; }`);
+      expect(loadSpacingTokens('globals.css', dir)).toEqual({
+        base: '4px',
+        named: { card: '24px', gutter: '1.5rem' },
+      });
+    });
+
+    it('should drop named tokens set to initial', () => {
+      writeCss(`@theme { --spacing-card: 24px; --spacing-old: initial; --spacing-*: initial; }`);
+      expect(loadSpacingTokens('globals.css', dir)).toEqual({
+        base: '0.25rem',
+        named: { card: '24px' },
+      });
+    });
+
+    it('should merge every @theme block with later blocks winning', () => {
+      writeCss(
+        `@theme { --spacing-card: 20px; } @theme inline { --spacing: 2px; --spacing-card: 24px; }`,
+      );
+      expect(loadSpacingTokens('globals.css', dir)).toEqual({
+        base: '2px',
+        named: { card: '24px' },
+      });
+    });
+
+    it('should not collide with color tokens cached for the same file', () => {
+      writeCss(`@theme { --color-ink: #0a0a0a; --spacing-card: 24px; }`);
+      expect(loadColorTokens({ cssFile: 'globals.css' }, dir)).toEqual({ '#0a0a0a': 'ink' });
+      expect(loadSpacingTokens('globals.css', dir)).toEqual({
+        base: '0.25rem',
+        named: { card: '24px' },
+      });
+      expect(loadColorTokens({ cssFile: 'globals.css' }, dir)).toEqual({ '#0a0a0a': 'ink' });
     });
   });
 });

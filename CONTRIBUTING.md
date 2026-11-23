@@ -13,7 +13,7 @@ npm run lint       # eslint
 npm run typecheck  # tsc --noEmit
 ```
 
-Requires **ESLint 9+** and **Node 20+**.
+Requires **ESLint 9+** and **Node 22+**.
 
 ## Project layout
 
@@ -69,7 +69,7 @@ minor, not the major.
 1. Branch off `main`.
 2. Make your change with tests and (if rule `meta` changed) regenerated docs.
 3. Ensure the full gate is green locally: `npm run lint && npm run typecheck && npm test -- --run`.
-4. Push and open a PR against `main`. CI runs the suite across Node 20/22/24 and ESLint 9/10.
+4. Push and open a PR against `main`. CI runs the suite across Node 22/24/26 and ESLint 9/10.
 
 ### Maintainer note: changing the CI matrix
 

@@ -10,7 +10,7 @@ export interface TokenOptions {
 }
 
 const THEME_REGEX = /@theme(?:\s+[\w-]+)*\s*\{([^}]+)\}/g;
-const COLOR_REGEX = /--color-([\w-]+)\s*:\s*([^;]+);/g;
+const THEME_VAR_REGEX = /--([\w-]+)\s*:\s*([^;]+)/g;
 
 interface CacheEntry {
   mtimeMs: number;
@@ -44,6 +44,11 @@ const readThroughCache = ({ kind, abs, compute }: CacheRequest): Record<string, 
   return tokens;
 };
 
+const readThemeVars = (content: string): [string, string][] =>
+  [...content.matchAll(THEME_REGEX)]
+    .flatMap((theme) => [...theme[1].matchAll(THEME_VAR_REGEX)])
+    .map((m) => [m[1], m[2].trim()]);
+
 const safeCompute = (compute: () => Record<string, string>): Record<string, string> => {
   try {
     return compute();
@@ -66,19 +71,15 @@ const loadCssTokens = (cssFile: string | undefined, cwd: string): Record<string,
   return readThroughCache({
     kind: 'color',
     abs,
-    compute: () => {
-      const content = fs.readFileSync(abs, 'utf-8');
-      const themeBodies = [...content.matchAll(THEME_REGEX)].map((theme) => theme[1]);
-
-      return Object.fromEntries(
-        themeBodies
-          .flatMap((body) => [...body.matchAll(COLOR_REGEX)])
-          .flatMap((m) => {
-            const value = normalizeColor(m[2].trim());
-            return value ? [[value, m[1]]] : [];
+    compute: () =>
+      Object.fromEntries(
+        readThemeVars(fs.readFileSync(abs, 'utf-8'))
+          .filter(([name]) => name.startsWith('color-'))
+          .flatMap(([name, raw]) => {
+            const value = normalizeColor(raw);
+            return value ? [[value, name.slice('color-'.length)]] : [];
           }),
-      );
-    },
+      ),
   });
 };
 

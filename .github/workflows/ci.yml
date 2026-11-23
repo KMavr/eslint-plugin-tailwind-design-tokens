@@ -38,3 +38,11 @@ jobs:
         if: matrix.eslint != '10' || matrix.node != '26'
       - run: npm run test:coverage
         if: matrix.eslint == '10' && matrix.node == '26'
+
+  # Single required check, so matrix changes don't orphan branch protection.
+  ci-success:
+    if: always()
+    needs: [test]
+    runs-on: ubuntu-latest
+    steps:
+      - run: test "${{ needs.test.result }}" = success

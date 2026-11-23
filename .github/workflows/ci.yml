@@ -23,7 +23,6 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
           cache: npm
-      - run: npm install -g npm@11
       - run: npm ci
       - name: Install ESLint ${{ matrix.eslint }}
         if: matrix.eslint != '10'

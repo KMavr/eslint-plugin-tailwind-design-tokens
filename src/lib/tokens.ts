@@ -10,7 +10,7 @@ export interface TokenOptions {
 }
 
 const THEME_REGEX = /@theme(?:\s+[\w-]+)*\s*\{([^}]+)\}/g;
-const COLOR_REGEX = /--color-([\w-]+)\s*:\s*([^;]+);/g;
+const THEME_VAR_REGEX = /--([\w-]+)\s*:\s*([^;]+)/g;
 
 interface CacheEntry {
   mtimeMs: number;
@@ -19,10 +19,13 @@ interface CacheEntry {
 
 const fileCache = new Map<string, CacheEntry>();
 
-const readThroughCache = (
-  abs: string,
-  compute: () => Record<string, string>,
-): Record<string, string> => {
+interface CacheRequest {
+  kind: string;
+  abs: string;
+  compute: () => Record<string, string>;
+}
+
+const readThroughCache = ({ kind, abs, compute }: CacheRequest): Record<string, string> => {
   let mtimeMs: number;
   try {
     mtimeMs = fs.statSync(abs).mtimeMs;
@@ -30,15 +33,21 @@ const readThroughCache = (
     return {};
   }
 
-  const cached = fileCache.get(abs);
+  const key = `${kind}:${abs}`;
+  const cached = fileCache.get(key);
   if (cached && cached.mtimeMs === mtimeMs) {
     return cached.tokens;
   }
 
   const tokens = safeCompute(compute);
-  fileCache.set(abs, { mtimeMs, tokens });
+  fileCache.set(key, { mtimeMs, tokens });
   return tokens;
 };
+
+const readThemeVars = (content: string): [string, string][] =>
+  [...content.matchAll(THEME_REGEX)]
+    .flatMap((theme) => [...theme[1].matchAll(THEME_VAR_REGEX)])
+    .map((m) => [m[1], m[2].trim()]);
 
 const safeCompute = (compute: () => Record<string, string>): Record<string, string> => {
   try {
@@ -59,18 +68,18 @@ const normalizeMap = (map: Record<string, string>): Record<string, string> =>
 const loadCssTokens = (cssFile: string | undefined, cwd: string): Record<string, string> => {
   if (!cssFile) return {};
   const abs = path.resolve(cwd, cssFile);
-  return readThroughCache(abs, () => {
-    const content = fs.readFileSync(abs, 'utf-8');
-    const themeBodies = [...content.matchAll(THEME_REGEX)].map((theme) => theme[1]);
-
-    return Object.fromEntries(
-      themeBodies
-        .flatMap((body) => [...body.matchAll(COLOR_REGEX)])
-        .flatMap((m) => {
-          const value = normalizeColor(m[2].trim());
-          return value ? [[value, m[1]]] : [];
-        }),
-    );
+  return readThroughCache({
+    kind: 'color',
+    abs,
+    compute: () =>
+      Object.fromEntries(
+        readThemeVars(fs.readFileSync(abs, 'utf-8'))
+          .filter(([name]) => name.startsWith('color-'))
+          .flatMap(([name, raw]) => {
+            const value = normalizeColor(raw);
+            return value ? [[value, name.slice('color-'.length)]] : [];
+          }),
+      ),
   });
 };
 
@@ -97,23 +106,27 @@ const loadConfigFileTokens = (
 ): Record<string, string> => {
   if (!configFile) return {};
   const abs = path.resolve(cwd, configFile);
-  return readThroughCache(abs, () => {
-    const req = createRequire(abs);
-    // Bust Node's own module cache so an edited config actually reloads.
-    delete req.cache[abs];
-    const config = req(abs);
+  return readThroughCache({
+    kind: 'config-color',
+    abs,
+    compute: () => {
+      const req = createRequire(abs);
+      // Bust Node's own module cache so an edited config actually reloads.
+      delete req.cache[abs];
+      const config = req(abs);
 
-    const colors: Record<string, unknown> = {
-      ...config?.theme?.colors,
-      ...config?.theme?.extend?.colors,
-    };
+      const colors: Record<string, unknown> = {
+        ...config?.theme?.colors,
+        ...config?.theme?.extend?.colors,
+      };
 
-    return Object.fromEntries(
-      flattenColors(colors).flatMap(([name, color]) => {
-        const normalized = normalizeColor(color);
-        return normalized ? [[normalized, name]] : [];
-      }),
-    );
+      return Object.fromEntries(
+        flattenColors(colors).flatMap(([name, color]) => {
+          const normalized = normalizeColor(color);
+          return normalized ? [[normalized, name]] : [];
+        }),
+      );
+    },
   });
 };
 

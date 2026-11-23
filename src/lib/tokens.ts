@@ -3,7 +3,7 @@ import path from 'node:path';
 import { createRequire } from 'node:module';
 import { normalizeColor } from './colors';
 
-export interface TokenOptions {
+export interface ColorTokenOptions {
   cssFile?: string;
   configFile?: string;
   tokens?: Record<string, string>;
@@ -65,7 +65,7 @@ const normalizeMap = (map: Record<string, string>): Record<string, string> =>
     }),
   );
 
-const loadCssTokens = (cssFile: string | undefined, cwd: string): Record<string, string> => {
+const loadCssColorTokens = (cssFile: string | undefined, cwd: string): Record<string, string> => {
   if (!cssFile) return {};
   const abs = path.resolve(cwd, cssFile);
   return readThroughCache({
@@ -100,7 +100,7 @@ const flattenColors = (tree: Record<string, unknown>, prefix = ''): [string, str
     return [];
   });
 
-const loadConfigFileTokens = (
+const loadConfigColorTokens = (
   configFile: string | undefined,
   cwd: string,
 ): Record<string, string> => {
@@ -130,8 +130,11 @@ const loadConfigFileTokens = (
   });
 };
 
-export const loadTokens = (options: TokenOptions, cwd = process.cwd()): Record<string, string> => ({
-  ...loadCssTokens(options.cssFile, cwd),
-  ...loadConfigFileTokens(options.configFile, cwd),
+export const loadColorTokens = (
+  options: ColorTokenOptions,
+  cwd = process.cwd(),
+): Record<string, string> => ({
+  ...loadCssColorTokens(options.cssFile, cwd),
+  ...loadConfigColorTokens(options.configFile, cwd),
   ...normalizeMap(options.tokens ?? {}),
 });

@@ -1,5 +1,5 @@
 import type { Rule } from 'eslint';
-import { loadTokens, TokenOptions } from '../lib/tokens';
+import { loadColorTokens, ColorTokenOptions } from '../lib/tokens';
 import { findColors } from '../lib/colors';
 import { makeAllowMatcher } from '../lib/allow';
 
@@ -34,8 +34,8 @@ const rule: Rule.RuleModule = {
   },
 
   create(context) {
-    const options = (context.options[0] ?? {}) as TokenOptions & { allow?: string[] };
-    const tokens = loadTokens(options, context.cwd);
+    const options = (context.options[0] ?? {}) as ColorTokenOptions & { allow?: string[] };
+    const tokens = loadColorTokens(options, context.cwd);
     const isAllowed = makeAllowMatcher(options.allow);
 
     const checkString = (node: Rule.Node, value: string, fixable: boolean) => {

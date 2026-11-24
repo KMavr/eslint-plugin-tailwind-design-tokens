@@ -8,7 +8,7 @@ import rule from '../../src/rules/no-hardcoded-colors';
  * Reports hardcoded color literals (hex / rgb / hsl / oklch) found anywhere in a
  * string Literal or TemplateLiteral quasi — inline styles, CSS-in-JS, and
  * Tailwind arbitrary values like bg-[#fff]. Detection comes from findColors
- * (../lib/colors); the token lookup comes from loadTokens (../lib/tokens).
+ * (../lib/colors); the token lookup comes from loadColorTokens (../lib/tokens).
  *
  * For each detected color:
  *   - if its normalized value maps to a token  -> messageId `useDesignToken`,

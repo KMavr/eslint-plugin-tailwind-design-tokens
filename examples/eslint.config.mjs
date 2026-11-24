@@ -1,9 +1,10 @@
 import tailwindDesignTokens from 'eslint-plugin-tailwind-design-tokens';
 
-// Both rules on as errors. no-hardcoded-colors reads tokens from BOTH sources:
+// All three rules on as errors. no-hardcoded-colors reads tokens from BOTH sources:
 //   - theme.css        -> Tailwind v4 @theme  (cssFile)
 //   - tailwind.config.js -> Tailwind v3 theme  (configFile)
 // so a hardcoded color that matches a token in either file is mapped to it.
+// no-arbitrary-spacing is Tailwind v4 only, so it reads theme.css alone.
 export default [
   {
     // Lint application source only — not this config or the Tailwind token files,
@@ -24,6 +25,7 @@ export default [
           configFile: './tailwind.config.js',
         },
       ],
+      'tailwind-design-tokens/no-arbitrary-spacing': ['error', { cssFile: './theme.css' }],
     },
   },
 ];

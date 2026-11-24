@@ -3,14 +3,21 @@ import path from 'node:path';
 import { createRequire } from 'node:module';
 import { normalizeColor } from './colors';
 
-export interface TokenOptions {
+export interface ColorTokenOptions {
   cssFile?: string;
   configFile?: string;
   tokens?: Record<string, string>;
 }
 
+export interface SpacingTokens {
+  base: string | null;
+  named: Record<string, string>;
+}
+
 const THEME_REGEX = /@theme(?:\s+[\w-]+)*\s*\{([^}]+)\}/g;
 const THEME_VAR_REGEX = /--([\w-]+)\s*:\s*([^;]+)/g;
+
+const DEFAULT_SPACING = '0.25rem';
 
 interface CacheEntry {
   mtimeMs: number;
@@ -65,7 +72,7 @@ const normalizeMap = (map: Record<string, string>): Record<string, string> =>
     }),
   );
 
-const loadCssTokens = (cssFile: string | undefined, cwd: string): Record<string, string> => {
+const loadCssColorTokens = (cssFile: string | undefined, cwd: string): Record<string, string> => {
   if (!cssFile) return {};
   const abs = path.resolve(cwd, cssFile);
   return readThroughCache({
@@ -100,7 +107,7 @@ const flattenColors = (tree: Record<string, unknown>, prefix = ''): [string, str
     return [];
   });
 
-const loadConfigFileTokens = (
+const loadConfigColorTokens = (
   configFile: string | undefined,
   cwd: string,
 ): Record<string, string> => {
@@ -130,8 +137,39 @@ const loadConfigFileTokens = (
   });
 };
 
-export const loadTokens = (options: TokenOptions, cwd = process.cwd()): Record<string, string> => ({
-  ...loadCssTokens(options.cssFile, cwd),
-  ...loadConfigFileTokens(options.configFile, cwd),
+export const loadColorTokens = (
+  options: ColorTokenOptions,
+  cwd = process.cwd(),
+): Record<string, string> => ({
+  ...loadCssColorTokens(options.cssFile, cwd),
+  ...loadConfigColorTokens(options.configFile, cwd),
   ...normalizeMap(options.tokens ?? {}),
 });
+
+export const loadSpacingTokens = (
+  cssFile: string | undefined,
+  cwd = process.cwd(),
+): SpacingTokens => {
+  if (!cssFile) return { base: DEFAULT_SPACING, named: {} };
+  const abs = path.resolve(cwd, cssFile);
+
+  const vars = readThroughCache({
+    kind: 'spacing',
+    abs,
+    compute: () =>
+      Object.fromEntries(
+        readThemeVars(fs.readFileSync(abs, 'utf-8')).filter(
+          ([name]) => name === 'spacing' || name.startsWith('spacing-'),
+        ),
+      ),
+  });
+  const { spacing = DEFAULT_SPACING, ...rest } = vars;
+  return {
+    base: spacing === 'initial' ? null : spacing,
+    named: Object.fromEntries(
+      Object.entries(rest)
+        .filter(([, value]) => value !== 'initial')
+        .map(([name, value]) => [name.slice('spacing-'.length), value]),
+    ),
+  };
+};

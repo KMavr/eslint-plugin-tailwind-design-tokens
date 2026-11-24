@@ -11,8 +11,8 @@
 [![Tailwind](https://img.shields.io/badge/Tailwind-v3%20%7C%20v4-38bdf8?logo=tailwindcss&logoColor=white)](https://tailwindcss.com)
 [![Conventional Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-fe5196?logo=conventionalcommits&logoColor=white)](https://conventionalcommits.org)
 
-ESLint plugin that flags hardcoded colors and default Tailwind palette classes, steering you toward
-your design-system tokens.
+ESLint plugin that flags hardcoded colors, default Tailwind palette classes and arbitrary spacing
+values, steering you toward your design-system tokens.
 
 ![eslint-plugin-tailwind-design-tokens demo](https://raw.githubusercontent.com/KMavr/eslint-plugin-tailwind-design-tokens/main/assets/demo.gif)
 
@@ -24,18 +24,24 @@ from sneaking into a component, and every one of those quietly erodes the system
 catches them at lint time and, when the hardcoded value matches one of your tokens, tells you exactly
 which token to use instead.
 
-It understands where tokens live across Tailwind versions — a v4 `@theme` block, a v3
-`tailwind.config.js`, or an inline map — so it works whatever your setup.
+Spacing drifts the same way. In Tailwind v4 every numeric spacing class is on the scale (`p-13` is
+`13 × --spacing`), so an arbitrary `p-[17px]` is the spacing equivalent of a raw hex. The plugin
+flags those too and points you at the on-scale class or a named `--spacing-*` token.
+
+For colors, it understands where tokens live across Tailwind versions — a v4 `@theme` block, a v3
+`tailwind.config.js`, or an inline map — so it works whatever your setup. Spacing checks are
+Tailwind v4 only.
 
 ## Before / after
 
 ```jsx
-// ✗ flagged — stock palette class + hardcoded hex
-<button className="bg-[#0a0a0a] text-red-500" />;
+// ✗ flagged — stock palette class + hardcoded hex + arbitrary spacing
+<button className="bg-[#0a0a0a] text-red-500 px-[16px] mt-[1.5rem]" />;
 
-// ✓ design-system tokens
-// (when #0a0a0a maps to a token, bg-[#0a0a0a] → bg-ink is auto-fixable)
-<button className="bg-ink text-primary" />;
+// ✓ design-system tokens and the spacing scale
+// (bg-[#0a0a0a] → bg-ink when #0a0a0a maps to a token; px-[16px] → px-4 and
+//  mt-[1.5rem] → mt-6 are auto-fixable)
+<button className="bg-ink text-primary px-4 mt-6" />;
 ```
 
 ## Install
@@ -66,8 +72,9 @@ import tailwindDesignTokens from 'eslint-plugin-tailwind-design-tokens';
 export default [...tailwindDesignTokens.configs['flat/recommended']];
 ```
 
-Recommended turns both rules on as errors. To get **token suggestions** (not just "hardcoded color"
-warnings), point `no-hardcoded-colors` at your token source:
+Recommended turns the two color rules on as errors. `no-arbitrary-spacing` is opt-in for now. To get
+**token suggestions** (not just "hardcoded color" warnings) and enable the spacing rule, point the
+rules at your token source:
 
 ```js
 import tailwindDesignTokens from 'eslint-plugin-tailwind-design-tokens';
@@ -78,6 +85,10 @@ export default [
     rules: {
       'tailwind-design-tokens/no-default-palette': 'error',
       'tailwind-design-tokens/no-hardcoded-colors': [
+        'error',
+        { cssFile: './src/styles/globals.css' },
+      ],
+      'tailwind-design-tokens/no-arbitrary-spacing': [
         'error',
         { cssFile: './src/styles/globals.css' },
       ],
@@ -105,6 +116,10 @@ Or configure the rules directly to add a token source:
     "tailwind-design-tokens/no-hardcoded-colors": [
       "error",
       { "cssFile": "./src/styles/globals.css" }
+    ],
+    "tailwind-design-tokens/no-arbitrary-spacing": [
+      "error",
+      { "cssFile": "./src/styles/globals.css" }
     ]
   }
 }
@@ -119,10 +134,11 @@ Or configure the rules directly to add a token source:
 🔧 Automatically fixable by the [`--fix` CLI option](https://eslint.org/docs/user-guide/command-line-interface#--fix).\
 💡 Manually fixable by [editor suggestions](https://eslint.org/docs/latest/use/core-concepts#rule-suggestions).
 
-| Name                                                     | Description                                                                                            | 💼  | 🔧  | 💡  |
-| :------------------------------------------------------- | :----------------------------------------------------------------------------------------------------- | :-- | :-- | :-- |
-| [no-default-palette](docs/rules/no-default-palette.md)   | Disallow default Tailwind palette colors; use design-system tokens                                     | ✅  |     |     |
-| [no-hardcoded-colors](docs/rules/no-hardcoded-colors.md) | Disallow hardcoded color values (hex, rgb, hsl, hwb, lab, lch, oklab, oklch); use design-system tokens | ✅  | 🔧  | 💡  |
+| Name                                                       | Description                                                                                            | 💼  | 🔧  | 💡  |
+| :--------------------------------------------------------- | :----------------------------------------------------------------------------------------------------- | :-- | :-- | :-- |
+| [no-arbitrary-spacing](docs/rules/no-arbitrary-spacing.md) | Disallow arbitrary spacing values; use the spacing scale or design-system tokens                       |     | 🔧  | 💡  |
+| [no-default-palette](docs/rules/no-default-palette.md)     | Disallow default Tailwind palette colors; use design-system tokens                                     | ✅  |     |     |
+| [no-hardcoded-colors](docs/rules/no-hardcoded-colors.md)   | Disallow hardcoded color values (hex, rgb, hsl, hwb, lab, lch, oklab, oklch); use design-system tokens | ✅  | 🔧  | 💡  |
 
 <!-- end auto-generated rules list -->
 
@@ -150,6 +166,10 @@ Color values are normalized before matching, so `#FFF` in your code matches a to
 `#ffffff`. Hex and the CSS color functions `rgb()`, `hsl()`, `hwb()`, `lab()`, `lch()`, `oklab()`,
 and `oklch()` are all detected, including inside Tailwind arbitrary values like `bg-[#0a0a0a]`.
 
+`no-arbitrary-spacing` reads `--spacing` (the scale base, default `0.25rem`) and `--spacing-*`
+(named tokens) from the same `@theme` blocks via its own `cssFile` option. It also takes
+`rootFontSize` and `stepIncrement`; see [the rule docs](docs/rules/no-arbitrary-spacing.md).
+
 ## How it works
 
 - **`no-hardcoded-colors`** scans every string literal and template-literal quasi for color values,
@@ -157,6 +177,10 @@ and `oklch()` are all detected, including inside Tailwind arbitrary values like 
   match reports _"unexpected hardcoded color"_.
 - **`no-default-palette`** splits class strings and flags any default Tailwind palette utility
   (`prefix-family-shade`), tolerating important (`!`) and opacity (`/50`) modifiers.
+- **`no-arbitrary-spacing`** splits class strings, finds arbitrary `px`/`rem` values in spacing and
+  sizing utilities, and converts them to the scale. One match is auto-fixed, several are offered as
+  suggestions, and an off-scale value is reported without a fix. `calc()`, `var()`, `%` and
+  viewport units are left alone.
 
 Token files are read once and cached per ESLint process, invalidated by file mtime.
 

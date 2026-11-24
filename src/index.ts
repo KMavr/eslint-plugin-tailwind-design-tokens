@@ -2,6 +2,7 @@ import type { ESLint } from 'eslint';
 import { createRequire } from 'node:module';
 import noHardcodedColors from './rules/no-hardcoded-colors';
 import noDefaultPalette from './rules/no-default-palette';
+import noArbitrarySpacing from './rules/no-arbitrary-spacing';
 
 const { version } = createRequire(__filename)('../package.json') as { version: string };
 
@@ -20,6 +21,7 @@ const plugin: ESLint.Plugin = {
   rules: {
     'no-hardcoded-colors': noHardcodedColors,
     'no-default-palette': noDefaultPalette,
+    'no-arbitrary-spacing': noArbitrarySpacing,
   },
   configs: {},
 };

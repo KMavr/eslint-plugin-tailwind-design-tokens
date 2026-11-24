@@ -2,9 +2,10 @@ import { Linter, type Rule } from 'eslint';
 import { describe, it, expect } from 'vitest';
 import noHardcodedColors from '../../src/rules/no-hardcoded-colors';
 import noDefaultPalette from '../../src/rules/no-default-palette';
+import noArbitrarySpacing from '../../src/rules/no-arbitrary-spacing';
 
 /**
- * Schema-validation spec for both rules.
+ * Schema-validation spec for every rule.
  *
  * Each rule declares an options `schema` with `additionalProperties: false`.
  * ESLint validates rule options against that schema and throws synchronously
@@ -86,6 +87,63 @@ describe('rules schema', () => {
 
     it('should reject non-string allow entries', () => {
       expect(() => lintWith('no-default-palette', noDefaultPalette, { allow: [42] })).toThrow();
+    });
+  });
+
+  describe('no-arbitrary-spacing options schema', () => {
+    const lint = (options: unknown) =>
+      lintWith('no-arbitrary-spacing', noArbitrarySpacing, options);
+
+    it('should accept a fully valid options object', () => {
+      expect(() =>
+        lint({
+          cssFile: './globals.css',
+          allow: ['w-[37px]', '/^h-\\[/'],
+          rootFontSize: 10,
+          stepIncrement: 0.5,
+        }),
+      ).not.toThrow();
+    });
+
+    it('should accept empty options', () => {
+      expect(() => lint({})).not.toThrow();
+    });
+
+    it('should accept every supported stepIncrement', () => {
+      [0.25, 0.5, 1].forEach((stepIncrement) => {
+        expect(() => lint({ stepIncrement })).not.toThrow();
+      });
+    });
+
+    it('should reject configFile because the rule is Tailwind v4 only', () => {
+      expect(() => lint({ configFile: './tailwind.config.js' })).toThrow();
+    });
+
+    it('should reject an unknown property (additionalProperties: false)', () => {
+      expect(() => lint({ foo: true })).toThrow();
+    });
+
+    it('should reject an unsupported stepIncrement', () => {
+      expect(() => lint({ stepIncrement: 0.3 })).toThrow();
+      expect(() => lint({ stepIncrement: '0.5' })).toThrow();
+    });
+
+    it('should reject a non-positive or non-number rootFontSize', () => {
+      expect(() => lint({ rootFontSize: 0 })).toThrow();
+      expect(() => lint({ rootFontSize: -16 })).toThrow();
+      expect(() => lint({ rootFontSize: '16' })).toThrow();
+    });
+
+    it('should reject a non-string cssFile', () => {
+      expect(() => lint({ cssFile: 123 })).toThrow();
+    });
+
+    it('should reject a non-array allow', () => {
+      expect(() => lint({ allow: 'w-[37px]' })).toThrow();
+    });
+
+    it('should reject non-string allow entries', () => {
+      expect(() => lint({ allow: [42] })).toThrow();
     });
   });
 });

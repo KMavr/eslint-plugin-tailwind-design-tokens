@@ -1,7 +1,7 @@
 {
   "name": "eslint-plugin-tailwind-design-tokens",
   "version": "0.3.1",
-  "description": "ESLint plugin that flags hardcoded colors and default Tailwind palette classes, steering you toward your design-system tokens.",
+  "description": "ESLint plugin that flags hardcoded colors, default Tailwind palette classes and arbitrary spacing values, steering you toward your design-system tokens.",
   "keywords": [
     "eslint",
     "eslintplugin",
@@ -10,7 +10,8 @@
     "tailwindcss",
     "design-tokens",
     "design-system",
-    "colors"
+    "colors",
+    "spacing"
   ],
   "homepage": "https://github.com/KMavr/eslint-plugin-tailwind-design-tokens#readme",
   "bugs": {

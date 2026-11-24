@@ -23,19 +23,19 @@ const plugin: ESLint.Plugin = {
     'no-default-palette': noDefaultPalette,
     'no-arbitrary-spacing': noArbitrarySpacing,
   },
-  configs: {},
 };
 
-plugin.configs!.recommended = {
-  plugins: [NAMESPACE],
-  rules: recommendedRules,
-};
-
-plugin.configs!['flat/recommended'] = [
-  {
-    plugins: { [NAMESPACE]: plugin },
+plugin.configs = {
+  recommended: {
+    plugins: [NAMESPACE],
     rules: recommendedRules,
   },
-];
+  'flat/recommended': [
+    {
+      plugins: { [NAMESPACE]: plugin },
+      rules: recommendedRules,
+    },
+  ],
+};
 
 export = plugin;

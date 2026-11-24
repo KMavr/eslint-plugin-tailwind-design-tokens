@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.4.0](https://github.com/KMavr/eslint-plugin-tailwind-design-tokens/compare/eslint-plugin-tailwind-design-tokens-v0.3.1...eslint-plugin-tailwind-design-tokens-v0.4.0) (2026-11-24)
+
+
+### ⚠ BREAKING CHANGES
+
+* requires Node 22 or later.
+
+### Features
+
+* add no-arbitrary-spacing rule ([afe62f3](https://github.com/KMavr/eslint-plugin-tailwind-design-tokens/commit/afe62f33cf32fbf8a3ea4af1f67bb8a333fce948))
+* load spacing tokens from [@theme](https://github.com/theme) ([3877e1c](https://github.com/KMavr/eslint-plugin-tailwind-design-tokens/commit/3877e1c4452f1eb7cc419cfadb83e77d8fd27ad9))
+
+
+### Miscellaneous Chores
+
+* drop Node 20 support ([9cde31a](https://github.com/KMavr/eslint-plugin-tailwind-design-tokens/commit/9cde31a855518cff02a9c88c8cccfd4e0d937218))
+
 ## [0.3.1](https://github.com/KMavr/eslint-plugin-tailwind-design-tokens/compare/eslint-plugin-tailwind-design-tokens-v0.3.0...eslint-plugin-tailwind-design-tokens-v0.3.1) (2026-11-20)
 
 

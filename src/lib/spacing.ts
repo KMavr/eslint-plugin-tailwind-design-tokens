@@ -67,9 +67,9 @@ export const toPx = (value: string, rootFontSize: number): number | null => {
   return match[2] === 'rem' ? amount * rootFontSize : amount;
 };
 
-export const toScaleStep = (px: number, basePx: number): string | null => {
+export const toScaleStep = (px: number, basePx: number, increment = 0.25): string | null => {
   if (basePx <= 0) return null;
-  const quarters = (px / basePx) * 4;
-  const rounded = Math.round(quarters);
-  return Math.abs(quarters - rounded) < 1e-9 ? String(rounded / 4) : null;
+  const units = px / basePx / increment;
+  const rounded = Math.round(units);
+  return Math.abs(units - rounded) < 1e-9 ? String(rounded * increment) : null;
 };

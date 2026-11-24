@@ -15,8 +15,8 @@ import { parseArbitrarySpacing, toPx, toScaleStep } from '../../src/lib/spacing'
  * toPx(value, rootFontSize): convert a px/rem length to px, or null for anything
  *   else (calc, var, %, viewport units, unitless).
  *
- * toScaleStep(px, basePx): the scale step as a string when px is a multiple of
- *   a quarter base step, else null.
+ * toScaleStep(px, basePx, increment = 0.25): the scale step as a string when px
+ *   is a multiple of `increment` base steps (0.25, 0.5 or 1), else null.
  */
 
 describe('spacing', () => {
@@ -159,6 +159,24 @@ describe('spacing', () => {
     it('should tolerate floating-point error', () => {
       expect(toScaleStep(0.1 * 30, 4)).toBe('0.75');
       expect(toScaleStep(24, 8)).toBe('3');
+    });
+
+    it('should accept half steps but reject quarter steps with an increment of 0.5', () => {
+      expect(toScaleStep(6, 4, 0.5)).toBe('1.5');
+      expect(toScaleStep(16, 4, 0.5)).toBe('4');
+      expect(toScaleStep(37, 4, 0.5)).toBeNull();
+      expect(toScaleStep(1, 4, 0.5)).toBeNull();
+    });
+
+    it('should accept only whole steps with an increment of 1', () => {
+      expect(toScaleStep(16, 4, 1)).toBe('4');
+      expect(toScaleStep(6, 4, 1)).toBeNull();
+      expect(toScaleStep(2, 4, 1)).toBeNull();
+    });
+
+    it('should default to quarter steps', () => {
+      expect(toScaleStep(37, 4)).toBe('9.25');
+      expect(toScaleStep(37, 4, 0.25)).toBe('9.25');
     });
   });
 });

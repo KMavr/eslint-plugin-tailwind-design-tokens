@@ -1,5 +1,7 @@
-/* Tailwind v4 design tokens — read by no-hardcoded-colors via the `cssFile` option. */
+/* Tailwind v4 design tokens — read via the `cssFile` option by no-hardcoded-colors (--color-*)
+   and no-arbitrary-spacing (--spacing-*). */
 @theme {
   --color-ink: #0a0a0a;
   --color-primary: #2563eb;
+  --spacing-card: 24px;
 }

@@ -2,6 +2,7 @@ import type { Rule } from 'eslint';
 import { loadColorTokens, ColorTokenOptions } from '../lib/tokens';
 import { findColors } from '../lib/colors';
 import { makeAllowMatcher } from '../lib/allow';
+import { visitStrings } from '../lib/visit';
 
 const rule: Rule.RuleModule = {
   meta: {
@@ -79,14 +80,7 @@ const rule: Rule.RuleModule = {
       });
     };
 
-    return {
-      Literal(node) {
-        if (typeof node.value === 'string') checkString(node, node.value, true);
-      },
-      TemplateLiteral(node) {
-        node.quasis.forEach((q) => checkString(node, q.value.raw, false));
-      },
-    };
+    return visitStrings((node, value, isTemplate) => checkString(node, value, !isTemplate));
   },
 };
 

@@ -2,6 +2,7 @@ import type { Rule } from 'eslint';
 import { makeAllowMatcher } from '../lib/allow';
 import { parseArbitrarySpacing, toPx, toScaleStep } from '../lib/spacing';
 import { loadSpacingTokens } from '../lib/tokens';
+import { visitStrings } from '../lib/visit';
 
 const rule: Rule.RuleModule = {
   meta: {
@@ -34,7 +35,7 @@ const rule: Rule.RuleModule = {
     const options = context.options[0] ?? {};
     const rootFontSize = options.rootFontSize ?? 16;
     const stepIncrement = options.stepIncrement ?? 0.25;
-    const isAllowed = makeAllowMatcher(context.options[0]?.allow ?? []);
+    const isAllowed = makeAllowMatcher(options.allow);
 
     const { base, named } = loadSpacingTokens(options.cssFile, context.cwd);
     const basePx = base ? toPx(base, rootFontSize) : null;
@@ -97,14 +98,7 @@ const rule: Rule.RuleModule = {
       });
     };
 
-    return {
-      Literal(node) {
-        if (typeof node.value === 'string') checkString(node, node.value);
-      },
-      TemplateLiteral(node) {
-        node.quasis.forEach((q) => checkString(node, q.value.raw));
-      },
-    };
+    return visitStrings(checkString);
   },
 };
 

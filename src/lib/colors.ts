@@ -1,8 +1,9 @@
-const HEX_REGEX = /^#(?:[0-9a-fA-F]{3,4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/i;
+const HEX_REGEX = /^#(?:[0-9a-f]{3,4}|[0-9a-f]{6}|[0-9a-f]{8})$/i;
 const COLOR_FUNCTIONS = 'rgba?|hsla?|hwb|lab|lch|oklab|oklch';
 const COLOR_FUNC_REGEX = new RegExp(`^(?:${COLOR_FUNCTIONS})\\(`, 'i');
+const COLOR_HINT = new RegExp(`#|${COLOR_FUNCTIONS}`, 'i');
 const COLOR_SCAN = new RegExp(
-  `#(?:[0-9a-fA-F]{8}|[0-9a-fA-F]{6}|[0-9a-fA-F]{4}|[0-9a-fA-F]{3})\\b|(?:${COLOR_FUNCTIONS})\\([^)]*\\)`,
+  `#(?:[0-9a-f]{8}|[0-9a-f]{6}|[0-9a-f]{4}|[0-9a-f]{3})\\b|(?:${COLOR_FUNCTIONS})\\([^)]*\\)`,
   'gi',
 );
 
@@ -22,7 +23,7 @@ export const normalizeColor = (raw: string): string | null => {
 };
 
 export const findColors = (text: string) => {
-  if (!/[#(]/.test(text) || !/#|rgb|hsl|hwb|lab|lch|oklab|oklch/i.test(text)) {
+  if (!/[#(]/.test(text) || !COLOR_HINT.test(text)) {
     return [];
   }
 

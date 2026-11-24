@@ -1,6 +1,7 @@
 import type { Rule } from 'eslint';
 import { isDefaultPaletteClass } from '../lib/tailwind';
 import { makeAllowMatcher } from '../lib/allow';
+import { visitStrings } from '../lib/visit';
 
 const rule: Rule.RuleModule = {
   meta: {
@@ -40,14 +41,7 @@ const rule: Rule.RuleModule = {
       });
     };
 
-    return {
-      Literal(node) {
-        if (typeof node.value === 'string') checkString(node, node.value);
-      },
-      TemplateLiteral(node) {
-        node.quasis.forEach((q) => checkString(node, q.value.raw));
-      },
-    };
+    return visitStrings(checkString);
   },
 };
 

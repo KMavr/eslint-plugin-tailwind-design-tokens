@@ -1,5 +1,5 @@
 import type { Rule } from 'eslint';
-import { isDefaultPaletteClass } from '../lib/tailwind';
+import { isDefaultPaletteClass, splitClasses } from '../lib/tailwind';
 import { makeAllowMatcher } from '../lib/allow';
 import { visitStrings } from '../lib/visit';
 
@@ -26,10 +26,8 @@ const rule: Rule.RuleModule = {
   create(context) {
     const isAllowed = makeAllowMatcher(context.options[0]?.allow ?? []);
 
-    const checkString = (node: Rule.Node, value: string) => {
-      const tokens = value.split(/\s+/);
-
-      tokens.forEach((token) => {
+    const checkString = (node: Rule.Node, text: string) => {
+      splitClasses(text).forEach(({ className: token }) => {
         const colorPart = isDefaultPaletteClass(token);
         if (colorPart && !isAllowed(colorPart) && !isAllowed(token)) {
           context.report({

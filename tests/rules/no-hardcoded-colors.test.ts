@@ -13,18 +13,17 @@ import rule from '../../src/rules/no-hardcoded-colors';
  * For each detected color:
  *   - if its normalized value maps to a token  -> messageId `useDesignToken`,
  *       data { color: <raw>, token: <name> }, plus a `replaceWithToken`
- *       suggestion that rewrites the color in place (string Literals only)
+ *       suggestion that rewrites the color in place
  *   - otherwise                                -> messageId `noHardcodedColor`,
  *       data { color: <raw> }
  *
- * Suggestions are only offered on plain string Literals: the in-place range math
- * assumes a single opening quote, which does not hold for TemplateLiteral quasis.
+ * Fix ranges are computed from the raw source text, so escape sequences, JSX
+ * entities and template quasis all fix at the right offset.
  *
  * Autofix (`--fix`, top-level `output`) is applied ONLY to the unambiguous
- * arbitrary-value case: a bracketed prefix-[#hex] on a Literal is rewritten to
- * the utility form (bg-[#fff] -> bg-paper). Bare colors and quasis are never
- * autofixed — they stay suggestion-only — so a bare-color token match asserts no
- * top-level `output`.
+ * arbitrary-value case: a bracketed prefix-[#hex] is rewritten to the utility
+ * form (bg-[#fff] -> bg-paper). Bare colors are never autofixed — they stay
+ * suggestion-only — so a bare-color token match asserts no top-level `output`.
  *
  * Options: [{ cssFile?, configFile?, tokens?, allow? }]. These tests use the
  * inline `tokens` map (file-based loading is covered in tokens.test.ts). `allow`
@@ -140,15 +139,123 @@ ruleTester.run('no-hardcoded-colors', rule, {
       ],
     },
     {
-      // template literal quasi with a token match -> reported, but NO suggestion
-      // (quote-offset range math is unsafe for quasis)
+      // template literal quasi with a token match -> suggestion, like a Literal
       code: 'const c = `#0a0a0a`;',
       options: [{ tokens: { '#0a0a0a': 'ink' } }],
       errors: [
         {
           messageId: 'useDesignToken',
           data: { color: '#0a0a0a', token: 'ink' },
-          suggestions: [],
+          suggestions: [
+            {
+              messageId: 'replaceWithToken',
+              data: { token: 'ink' },
+              output: 'const c = `ink`;',
+            },
+          ],
+        },
+      ],
+    },
+    {
+      // arbitrary value in a later quasi -> autofixed at that quasi's offset
+      code: 'const c = `${x} bg-[#fff]`;',
+      options: [{ tokens: { '#ffffff': 'paper' } }],
+      output: 'const c = `${x} bg-paper`;',
+      errors: [
+        {
+          messageId: 'useDesignToken',
+          suggestions: [
+            {
+              messageId: 'replaceWithToken',
+              data: { token: 'paper' },
+              output: 'const c = `${x} bg-paper`;',
+            },
+          ],
+        },
+      ],
+    },
+    {
+      // #64: a two-char escape before the color must not shift the fix range
+      code: String.raw`const c = "a\\b bg-[#fff]";`,
+      options: [{ tokens: { '#ffffff': 'paper' } }],
+      output: String.raw`const c = "a\\b bg-paper";`,
+      errors: [
+        {
+          messageId: 'useDesignToken',
+          suggestions: [
+            {
+              messageId: 'replaceWithToken',
+              data: { token: 'paper' },
+              output: String.raw`const c = "a\\b bg-paper";`,
+            },
+          ],
+        },
+      ],
+    },
+    {
+      // #64: a unicode escape (6 raw chars, 1 cooked) before the color
+      code: String.raw`const c = "\u00e9 bg-[#fff]";`,
+      options: [{ tokens: { '#ffffff': 'paper' } }],
+      output: String.raw`const c = "\u00e9 bg-paper";`,
+      errors: [
+        {
+          messageId: 'useDesignToken',
+          suggestions: [
+            {
+              messageId: 'replaceWithToken',
+              data: { token: 'paper' },
+              output: String.raw`const c = "\u00e9 bg-paper";`,
+            },
+          ],
+        },
+      ],
+    },
+    {
+      // #64: a JSX entity before the color
+      code: '<div className="a &amp; bg-[#fff]" />;',
+      options: [{ tokens: { '#ffffff': 'paper' } }],
+      output: '<div className="a &amp; bg-paper" />;',
+      errors: [
+        {
+          messageId: 'useDesignToken',
+          suggestions: [
+            {
+              messageId: 'replaceWithToken',
+              data: { token: 'paper' },
+              output: '<div className="a &amp; bg-paper" />;',
+            },
+          ],
+        },
+      ],
+    },
+    {
+      // two arbitrary values in one string -> both fixed in a single pass,
+      // each suggestion touches only its own color
+      code: 'const c = "bg-[#fff] text-[#0a0a0a]";',
+      options: [{ tokens: { '#ffffff': 'paper', '#0a0a0a': 'ink' } }],
+      output: 'const c = "bg-paper text-ink";',
+      errors: [
+        {
+          messageId: 'useDesignToken',
+          data: { color: '#fff', token: 'paper' },
+          suggestions: [
+            {
+              messageId: 'replaceWithToken',
+              data: { token: 'paper' },
+              output: 'const c = "bg-paper text-[#0a0a0a]";',
+            },
+          ],
+        },
+        {
+          messageId: 'useDesignToken',
+          data: { color: '#0a0a0a', token: 'ink' },
+          suggestions: [
+            {
+              messageId: 'replaceWithToken',
+              data: { token: 'ink' },
+              output: 'const c = "bg-[#fff] text-ink";',
+            },
+          ],
         },
       ],
     },

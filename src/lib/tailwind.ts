@@ -67,3 +67,12 @@ export const isDefaultPaletteClass = (className: string): string | null => {
 
   return colorPart ?? null;
 };
+
+// Splits raw source text into classes. Escaped whitespace (\n, \t, ...) separates
+// classes too, since the raw text holds the escape, not the whitespace itself.
+const CLASS_REGEX = /\\[nrtfv]|((?:[^\s\\]|\\[^nrtfv])+)/g;
+
+export const splitClasses = (text: string) =>
+  [...text.matchAll(CLASS_REGEX)]
+    .filter((m) => m[1])
+    .map((m) => ({ className: m[1], index: m.index }));

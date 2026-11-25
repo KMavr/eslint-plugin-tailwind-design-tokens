@@ -229,10 +229,93 @@ ruleTester.run('no-arbitrary-spacing', rule, {
       errors: [{ messageId: 'offScale' }],
     },
     {
-      // a repeated class is fixed everywhere in one pass
+      // each occurrence is reported and fixed on its own range, in one pass
       code: 'const c = "p-[16px] md:p-[16px]";',
       output: 'const c = "p-4 md:p-4";',
       errors: [{ messageId: 'useScale' }, { messageId: 'useScale' }],
+    },
+    {
+      // #65: fixing p-[4px] must not rewrite an allowed variant of it
+      code: 'const c = "p-[4px] md:p-[4px]";',
+      options: [{ allow: ['md:p-[4px]'] }],
+      output: 'const c = "p-1 md:p-[4px]";',
+      errors: [{ messageId: 'useScale', data: { className: 'p-[4px]', suggestion: 'p-1' } }],
+    },
+    {
+      // #65: an uncovered utility containing the class as a substring is untouched
+      code: 'const c = "p-[4px] scroll-p-[4px] scroll-mt-[4px]";',
+      output: 'const c = "p-1 scroll-p-[4px] scroll-mt-[4px]";',
+      errors: [{ messageId: 'useScale' }],
+    },
+    {
+      // #65: each suggestion rewrites only its own class
+      code: 'const c = "p-[24px] md:p-[24px]";',
+      options: [{ cssFile: namedCss }],
+      output: null,
+      errors: [
+        {
+          messageId: 'useScale',
+          data: { className: 'p-[24px]', suggestion: 'p-6' },
+          suggestions: [
+            {
+              messageId: 'useScale',
+              data: { className: 'p-[24px]', suggestion: 'p-6' },
+              output: 'const c = "p-6 md:p-[24px]";',
+            },
+            {
+              messageId: 'useScale',
+              data: { className: 'p-[24px]', suggestion: 'p-card' },
+              output: 'const c = "p-card md:p-[24px]";',
+            },
+          ],
+        },
+        {
+          messageId: 'useScale',
+          data: { className: 'md:p-[24px]', suggestion: 'md:p-6' },
+          suggestions: [
+            {
+              messageId: 'useScale',
+              data: { className: 'md:p-[24px]', suggestion: 'md:p-6' },
+              output: 'const c = "p-[24px] md:p-6";',
+            },
+            {
+              messageId: 'useScale',
+              data: { className: 'md:p-[24px]', suggestion: 'md:p-card' },
+              output: 'const c = "p-[24px] md:p-card";',
+            },
+          ],
+        },
+      ],
+    },
+    {
+      // #65: fixes don't overlap, so more than 10 classes are fixed in a single pass
+      code: 'const c = "p-[4px] px-[8px] py-[12px] pt-[16px] pr-[20px] pb-[24px] pl-[28px] m-[4px] mx-[8px] my-[12px] mt-[16px]";',
+      output: 'const c = "p-1 px-2 py-3 pt-4 pr-5 pb-6 pl-7 m-1 mx-2 my-3 mt-4";',
+      errors: Array(11).fill({ messageId: 'useScale' }),
+    },
+    {
+      // raw offsets: a two-char escape before the class must not shift the fix
+      code: String.raw`const c = "a\\b p-[16px]";`,
+      output: String.raw`const c = "a\\b p-4";`,
+      errors: [{ messageId: 'useScale' }],
+    },
+    {
+      // raw offsets: an escaped tab separates classes
+      code: String.raw`const c = "flex\tp-[16px]";`,
+      output: String.raw`const c = "flex\tp-4";`,
+      errors: [{ messageId: 'useScale', data: { className: 'p-[16px]', suggestion: 'p-4' } }],
+    },
+    {
+      // raw offsets: a JSX entity before the class
+      code: '<div className="a &amp; p-[16px]" />;',
+      output: '<div className="a &amp; p-4" />;',
+      errors: [{ messageId: 'useScale' }],
+    },
+    {
+      // raw offsets: a class in a later quasi is fixed at that quasi's offset
+      code: 'const c = `${x} p-[16px]`;',
+      output: 'const c = `${x} p-4`;',
+      errors: [{ messageId: 'useScale' }],
     },
     {
       code: 'const c = `p-[16px] ${x}`;',

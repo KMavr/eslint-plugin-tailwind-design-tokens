@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { isDefaultPaletteClass } from '../../src/lib/tailwind';
+import { isDefaultPaletteClass, splitClasses } from '../../src/lib/tailwind';
 
 /**
  * Spec for src/lib/tailwind.ts
@@ -131,5 +131,27 @@ describe('isDefaultPaletteClass', () => {
   it('should return null for variant-prefixed non-palette classes', () => {
     expect(isDefaultPaletteClass('hover:bg-primary')).toBeNull();
     expect(isDefaultPaletteClass('md:flex')).toBeNull();
+  });
+});
+
+describe('splitClasses', () => {
+  const names = (text: string) => splitClasses(text).map(({ className }) => className);
+
+  it('should split on whitespace and report each class index', () => {
+    expect(splitClasses('  p-4 bg-red-500')).toEqual([
+      { className: 'p-4', index: 2 },
+      { className: 'bg-red-500', index: 6 },
+    ]);
+  });
+
+  it('should treat escaped whitespace as a separator', () => {
+    expect(names(String.raw`flex\tbg-red-500\np-4`)).toEqual(['flex', 'bg-red-500', 'p-4']);
+  });
+
+  it('should keep other escapes inside the class', () => {
+    expect(names(String.raw`a\\b content-[\"x\"]`)).toEqual([
+      String.raw`a\\b`,
+      String.raw`content-[\"x\"]`,
+    ]);
   });
 });

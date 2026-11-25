@@ -3,6 +3,7 @@ import { makeAllowMatcher } from '../lib/allow';
 import { parseArbitrarySpacing, toPx, toScaleStep } from '../lib/spacing';
 import { loadSpacingTokens } from '../lib/tokens';
 import { visitStrings } from '../lib/visit';
+import { splitClasses } from '../lib/tailwind';
 
 const rule: Rule.RuleModule = {
   meta: {
@@ -63,9 +64,8 @@ const rule: Rule.RuleModule = {
       );
     };
 
-    const checkString = (node: Rule.Node, value: string) => {
-      const tokens = value.split(/\s+/);
-      tokens.forEach((token) => {
+    const checkString = (node: Rule.Node, text: string, start: number) => {
+      splitClasses(text).forEach(({ className: token, index }) => {
         const replacements = replacementsFor(token);
         if (!replacements) return;
 
@@ -79,7 +79,7 @@ const rule: Rule.RuleModule = {
         }
 
         const fixTo = (replacement: string) => (fixer: Rule.RuleFixer) =>
-          fixer.replaceText(node, context.sourceCode.getText(node).replaceAll(token, replacement));
+          fixer.replaceTextRange([start + index, start + index + token.length], replacement);
 
         context.report({
           node,

@@ -75,9 +75,9 @@ const readThemeVars = (content: string): [string, string][] => {
     .map((m) => [m[1], m[2].trim()]);
 };
 
-const normalizeMap = (map: Record<string, string>): Record<string, string> =>
+const normalizeEntries = (entries: [string, string][]): Record<string, string> =>
   Object.fromEntries(
-    Object.entries(map).flatMap(([color, name]) => {
+    entries.flatMap(([color, name]) => {
       const normalized = normalizeColor(color);
       return normalized ? [[normalized, name]] : [];
     }),
@@ -90,13 +90,10 @@ const loadCssColorTokens = (cssFile: string | undefined, cwd: string): Record<st
     kind: 'color',
     abs,
     compute: () =>
-      Object.fromEntries(
+      normalizeEntries(
         readThemeVars(fs.readFileSync(abs, 'utf-8'))
           .filter(([name]) => name.startsWith('color-'))
-          .flatMap(([name, raw]) => {
-            const value = normalizeColor(raw);
-            return value ? [[value, name.slice('color-'.length)]] : [];
-          }),
+          .map(([name, raw]) => [raw, name.slice('color-'.length)]),
       ),
   });
 };
@@ -176,11 +173,8 @@ const loadConfigColorTokens = (
     abs,
     compute: () => {
       const { colors, extend } = readConfigColors(abs);
-      return Object.fromEntries(
-        flattenColors(deepMerge(colors, extend)).flatMap(([name, color]) => {
-          const normalized = normalizeColor(color);
-          return normalized ? [[normalized, name]] : [];
-        }),
+      return normalizeEntries(
+        flattenColors(deepMerge(colors, extend)).map(([name, color]) => [color, name]),
       );
     },
   });
@@ -192,7 +186,7 @@ export const loadColorTokens = (
 ): Record<string, string> => ({
   ...loadCssColorTokens(options.cssFile, cwd),
   ...loadConfigColorTokens(options.configFile, cwd),
-  ...normalizeMap(options.tokens ?? {}),
+  ...normalizeEntries(Object.entries(options.tokens ?? {})),
 });
 
 // Replays declarations in order on top of Tailwind's default theme, like Tailwind does:

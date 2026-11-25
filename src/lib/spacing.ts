@@ -1,20 +1,10 @@
 const SIDES = ['', 'x', 'y', 't', 'r', 'b', 'l', 's', 'e'];
 
-const SPACING_UTILITIES = [
-  ...SIDES.map((side) => `p${side}`),
+// Tailwind only generates negative variants for these; `-p-1` or `w-[-4px]` aren't valid classes.
+const NEGATABLE = [
   ...SIDES.map((side) => `m${side}`),
-  'gap',
-  'gap-x',
-  'gap-y',
   'space-x',
   'space-y',
-  'w',
-  'h',
-  'size',
-  'min-w',
-  'min-h',
-  'max-w',
-  'max-h',
   'inset',
   'inset-x',
   'inset-y',
@@ -26,21 +16,22 @@ const SPACING_UTILITIES = [
   'end',
 ];
 
-// Tailwind only generates negative variants for these; `-p-1` or `w-[-4px]` aren't valid classes.
-const NEGATABLE_UTILITIES = new Set([
-  ...SIDES.map((side) => `m${side}`),
-  'space-x',
-  'space-y',
-  'inset',
-  'inset-x',
-  'inset-y',
-  'top',
-  'right',
-  'bottom',
-  'left',
-  'start',
-  'end',
-]);
+const NEGATABLE_UTILITIES = new Set(NEGATABLE);
+
+const SPACING_UTILITIES = [
+  ...NEGATABLE,
+  ...SIDES.map((side) => `p${side}`),
+  'gap',
+  'gap-x',
+  'gap-y',
+  'w',
+  'h',
+  'size',
+  'min-w',
+  'min-h',
+  'max-w',
+  'max-h',
+];
 
 const UTILITY_ALTERNATION = SPACING_UTILITIES.join('|');
 

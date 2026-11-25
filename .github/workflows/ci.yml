@@ -29,6 +29,8 @@ jobs:
         run: npm install --no-save eslint@${{ matrix.eslint }}
       - run: npm run lint
         if: matrix.eslint == '10'
+      - run: npm run format:check
+        if: matrix.eslint == '10'
       - run: npm run typecheck
         if: matrix.eslint == '10'
       - run: npm run doc:check

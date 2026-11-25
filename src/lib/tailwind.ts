@@ -24,6 +24,19 @@ const TAILWIND_COLOR_PREFIXES = [
   'placeholder-',
   'caret-',
   'ring-offset-',
+  'border-bs-',
+  'border-be-',
+  'inset-shadow-',
+  'inset-ring-',
+  'text-shadow-',
+  'drop-shadow-',
+  'scrollbar-thumb-',
+  'scrollbar-track-',
+  // Mask gradient stops: mask-linear-from-, mask-t-to-, ...
+  ...['linear', 'radial', 'conic', 'x', 'y', 't', 'r', 'b', 'l'].flatMap((mask) => [
+    `mask-${mask}-from-`,
+    `mask-${mask}-to-`,
+  ]),
 ];
 
 // Default Tailwind palette color families
@@ -33,6 +46,10 @@ const DEFAULT_PALETTE = [
   'zinc',
   'neutral',
   'stone',
+  'mauve',
+  'olive',
+  'mist',
+  'taupe',
   'red',
   'orange',
   'amber',

@@ -53,6 +53,49 @@ describe('isDefaultPaletteClass', () => {
     expect(isDefaultPaletteClass('border-e-blue-700')).toBe('blue-700');
   });
 
+  it('should flag the v4 shadow and inset-ring color utilities', () => {
+    expect(isDefaultPaletteClass('inset-shadow-red-500')).toBe('red-500');
+    expect(isDefaultPaletteClass('inset-ring-blue-200')).toBe('blue-200');
+    expect(isDefaultPaletteClass('text-shadow-sky-300')).toBe('sky-300');
+    expect(isDefaultPaletteClass('drop-shadow-indigo-500/50')).toBe('indigo-500');
+  });
+
+  it('should flag the block-logical border prefixes (border-bs/be-)', () => {
+    expect(isDefaultPaletteClass('border-bs-blue-700')).toBe('blue-700');
+    expect(isDefaultPaletteClass('border-be-blue-700')).toBe('blue-700');
+  });
+
+  it('should flag scrollbar color utilities', () => {
+    expect(isDefaultPaletteClass('scrollbar-thumb-gray-400')).toBe('gray-400');
+    expect(isDefaultPaletteClass('scrollbar-track-gray-100')).toBe('gray-100');
+  });
+
+  it('should flag mask gradient stop colors', () => {
+    expect(isDefaultPaletteClass('mask-linear-from-red-500')).toBe('red-500');
+    expect(isDefaultPaletteClass('mask-radial-to-blue-200')).toBe('blue-200');
+    expect(isDefaultPaletteClass('mask-t-from-black')).toBeNull();
+    expect(isDefaultPaletteClass('mask-b-to-zinc-900')).toBe('zinc-900');
+  });
+
+  it('should not flag mask stop positions', () => {
+    ['mask-linear-from-50%', 'mask-t-from-20', 'mask-radial-to-80%'].forEach((className) => {
+      expect(isDefaultPaletteClass(className)).toBeNull();
+    });
+  });
+
+  it('should flag the v4.2 palette families', () => {
+    expect(isDefaultPaletteClass('bg-mauve-100')).toBe('mauve-100');
+    expect(isDefaultPaletteClass('text-olive-700')).toBe('olive-700');
+    expect(isDefaultPaletteClass('border-mist-50')).toBe('mist-50');
+    expect(isDefaultPaletteClass('fill-taupe-950')).toBe('taupe-950');
+  });
+
+  it('should not flag shadow size utilities', () => {
+    ['inset-shadow-sm', 'text-shadow-lg', 'drop-shadow-xl', 'inset-ring-2'].forEach((className) => {
+      expect(isDefaultPaletteClass(className)).toBeNull();
+    });
+  });
+
   it('should flag ring-offset color utilities', () => {
     expect(isDefaultPaletteClass('ring-offset-red-500')).toBe('red-500');
     expect(isDefaultPaletteClass('ring-offset-slate-50')).toBe('slate-50');

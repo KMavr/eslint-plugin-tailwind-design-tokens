@@ -7,7 +7,9 @@ import rule from '../../src/rules/no-hardcoded-colors';
  *
  * Reports hardcoded color literals (hex / rgb / hsl / oklch) found anywhere in a
  * string Literal or TemplateLiteral quasi — inline styles, CSS-in-JS, and
- * Tailwind arbitrary values like bg-[#fff]. Detection comes from findColors
+ * Tailwind arbitrary values like bg-[#fff]. Hex is only reported as the whole
+ * string, inside an arbitrary bracket, or in a CSS declaration value; JSX href
+ * values are skipped (#69). Detection comes from findColors
  * (../lib/colors); the token lookup comes from loadColorTokens (../lib/tokens).
  *
  * For each detected color:
@@ -54,6 +56,14 @@ ruleTester.run('no-hardcoded-colors', rule, {
     // migration: a /regex/ allow entry silences a whole class of colors
     { code: 'const c = "rgb(10 10 10)";', options: [{ allow: ['/^rgb\\(/'] }] },
     { code: 'const c = "#0a0a0a";', options: [{ allow: ['/^#0a/'] }] },
+    // hex-like text outside a bracket, CSS declaration or whole-string value (#69)
+    'const s = "Fixed issue #123 and #4567";',
+    'const s = "#123 was fixed";',
+    'const c = "#0a0a0a #ffffff";',
+    'const s = `See #cafe for ${x}`;',
+    // anchors are never colors
+    '<a href="#add">x</a>;',
+    "<a href={'#feed'}>x</a>;",
   ],
   invalid: [
     {
@@ -271,11 +281,33 @@ ruleTester.run('no-hardcoded-colors', rule, {
     },
     {
       // multiple colors in one string -> one report each
-      code: 'const c = "#0a0a0a #ffffff";',
+      code: 'const c = "bg-[#0a0a0a] text-[#ffffff]";',
       errors: [
         { messageId: 'noHardcodedColor', data: { color: '#0a0a0a' } },
         { messageId: 'noHardcodedColor', data: { color: '#ffffff' } },
       ],
+    },
+    {
+      // hex later in a CSS declaration value
+      code: 'const c = `border: 1px solid #fff; box-shadow: 0 0 2px #000;`;',
+      errors: [
+        { messageId: 'noHardcodedColor', data: { color: '#fff' } },
+        { messageId: 'noHardcodedColor', data: { color: '#000' } },
+      ],
+    },
+    {
+      // hex deeper inside an arbitrary value
+      code: 'const c = "shadow-[0_0_2px_#000] bg-[linear-gradient(#fff,#000)]";',
+      errors: [
+        { messageId: 'noHardcodedColor', data: { color: '#000' } },
+        { messageId: 'noHardcodedColor', data: { color: '#fff' } },
+        { messageId: 'noHardcodedColor', data: { color: '#000' } },
+      ],
+    },
+    {
+      // whole-string hex in a non-href JSX attribute
+      code: '<path fill="#000" />;',
+      errors: [{ messageId: 'noHardcodedColor', data: { color: '#000' } }],
     },
     {
       // template literal quasi

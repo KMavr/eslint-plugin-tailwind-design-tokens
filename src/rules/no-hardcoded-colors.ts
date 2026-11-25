@@ -4,6 +4,15 @@ import { findColors } from '../lib/colors';
 import { makeAllowMatcher } from '../lib/allow';
 import { visitStrings } from '../lib/visit';
 
+type JSXParent = { type: string; parent?: JSXParent; name?: { name?: unknown } };
+
+// <a href="#add"> and <a href={'#add'}> are anchors, never colors.
+const isHrefValue = (node: Rule.Node) => {
+  const parent = node.parent as unknown as JSXParent | undefined;
+  const attr = parent?.type === 'JSXExpressionContainer' ? parent.parent : parent;
+  return attr?.type === 'JSXAttribute' && attr.name?.name === 'href';
+};
+
 const rule: Rule.RuleModule = {
   meta: {
     type: 'problem',
@@ -40,6 +49,7 @@ const rule: Rule.RuleModule = {
     const isAllowed = makeAllowMatcher(options.allow);
 
     const checkString = (node: Rule.Node, text: string, start: number) => {
+      if (isHrefValue(node)) return;
       findColors(text).forEach(({ raw, normalized, index }) => {
         if (isAllowed(raw) || isAllowed(normalized)) return;
 

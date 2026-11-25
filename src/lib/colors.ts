@@ -6,6 +6,14 @@ const COLOR_SCAN = new RegExp(
   `#(?:[0-9a-f]{8}|[0-9a-f]{6}|[0-9a-f]{4}|[0-9a-f]{3})\\b|(?:${COLOR_FUNCTIONS})\\([^)]*\\)`,
   'gi',
 );
+// Hex is only trusted inside an open Tailwind bracket or after a CSS `property:`.
+const OPEN_BRACKET = /\[[^\s\]]*$/;
+const CSS_DECLARATION = /(?:^|[;{\s])[a-z-]+\s*:[^;{}\n]*$/;
+
+const isHexContext = (text: string, raw: string, index: number) => {
+  const before = text.slice(0, index);
+  return text.trim() === raw || OPEN_BRACKET.test(before) || CSS_DECLARATION.test(before);
+};
 
 export const normalizeColor = (raw: string): string | null => {
   if (HEX_REGEX.test(raw)) {
@@ -28,6 +36,7 @@ export const findColors = (text: string) => {
   }
 
   return [...text.matchAll(COLOR_SCAN)].flatMap((m) => {
+    if (m[0].startsWith('#') && !isHexContext(text, m[0], m.index)) return [];
     const normalized = normalizeColor(m[0]);
     return normalized ? [{ raw: m[0], normalized, index: m.index }] : [];
   });

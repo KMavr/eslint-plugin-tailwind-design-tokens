@@ -179,4 +179,40 @@ describe('colors', () => {
       expect(m.normalized).toBe('#aabbccdd');
     });
   });
+
+  describe('findColors — hex context', () => {
+    const hexes = (text: string) => findColors(text).map((m) => m.raw);
+
+    it('should find a hex that is the whole string', () => {
+      expect(hexes('#fff')).toEqual(['#fff']);
+      expect(hexes('  #0a0a0a  ')).toEqual(['#0a0a0a']);
+    });
+
+    it('should find a hex anywhere inside an open arbitrary bracket', () => {
+      expect(hexes('shadow-[0_0_2px_#000]')).toEqual(['#000']);
+      expect(hexes('[color:#fff]')).toEqual(['#fff']);
+      expect(hexes('bg-[linear-gradient(#fff,#000)]')).toEqual(['#fff', '#000']);
+    });
+
+    it('should find a hex in a CSS declaration value', () => {
+      expect(hexes('color: #fff;')).toEqual(['#fff']);
+      expect(hexes('a { border: 1px solid #fff }')).toEqual(['#fff']);
+      expect(hexes('color:#000;background-color: #fff')).toEqual(['#000', '#fff']);
+    });
+
+    it('should skip a hex in prose', () => {
+      expect(hexes('Fixed issue #123 and #4567')).toEqual([]);
+      expect(hexes('#123 was fixed')).toEqual([]);
+      expect(hexes('Note: see #cafe')).toEqual([]);
+    });
+
+    it('should skip a hex after a closed bracket or declaration', () => {
+      expect(hexes('bg-[red] #fff')).toEqual([]);
+      expect(hexes('color: red; #fff')).toEqual([]);
+    });
+
+    it('should not restrict color functions by context', () => {
+      expect(hexes('Fixed rgb(10 10 10) today')).toEqual(['rgb(10 10 10)']);
+    });
+  });
 });

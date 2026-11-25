@@ -120,7 +120,8 @@ const loadConfigColorTokens = (
       const req = createRequire(abs);
       // Bust Node's own module cache so an edited config actually reloads.
       delete req.cache[abs];
-      const config = req(abs);
+      const mod = req(abs);
+      const config = mod?.default ?? mod;
 
       const colors: Record<string, unknown> = {
         ...config?.theme?.colors,

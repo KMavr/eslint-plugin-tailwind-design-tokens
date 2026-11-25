@@ -196,6 +196,25 @@ describe('tokens', () => {
       });
     });
 
+    it('should read colors from an ESM `export default` config', () => {
+      writeFileSync(
+        join(dir, 'tailwind.config.mjs'),
+        `export default { theme: { colors: { ink: '#123456' } } };`,
+        'utf-8',
+      );
+      expect(loadColorTokens({ configFile: 'tailwind.config.mjs' }, dir)).toEqual({
+        '#123456': 'ink',
+      });
+    });
+
+    it('should read colors from a transpiled CJS config with `exports.default`', () => {
+      writeConfig(`Object.defineProperty(exports, '__esModule', { value: true });
+        exports.default = { theme: { colors: { ink: '#123456' } } };`);
+      expect(loadColorTokens({ configFile: 'tailwind.config.js' }, dir)).toEqual({
+        '#123456': 'ink',
+      });
+    });
+
     it('should fail soft (return {}) when the config does not exist', () => {
       expect(() => loadColorTokens({ configFile: 'nope.config.js' }, dir)).not.toThrow();
       expect(loadColorTokens({ configFile: 'nope.config.js' }, dir)).toEqual({});

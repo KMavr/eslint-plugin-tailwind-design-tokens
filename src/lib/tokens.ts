@@ -14,7 +14,9 @@ export interface SpacingTokens {
   named: Record<string, string>;
 }
 
-const THEME_REGEX = /@theme(?:\s+[\w-]+)*\s*\{([^}]+)\}/g;
+const THEME_OPEN_REGEX = /@theme(?:\s+[\w-]+)*\s*\{/g;
+const STRING_OR_COMMENT_REGEX = /("(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*')|\/\*[\s\S]*?\*\//g;
+const CSS_TOKEN_REGEX = /"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|[{}]|[^"'{}]+/g;
 const THEME_VAR_REGEX = /--([\w-]+)\s*:\s*([^;]+)/g;
 
 const DEFAULT_SPACING = '0.25rem';
@@ -51,10 +53,25 @@ const readThroughCache = ({ kind, abs, compute }: CacheRequest): Record<string, 
   return tokens;
 };
 
-const readThemeVars = (content: string): [string, string][] =>
-  [...content.matchAll(THEME_REGEX)]
-    .flatMap((theme) => [...theme[1].matchAll(THEME_VAR_REGEX)])
+const topLevelBody = (css: string): string =>
+  (css.match(CSS_TOKEN_REGEX) ?? []).reduce(
+    (acc, token) => {
+      if (acc.depth === 0) return acc;
+      if (token === '{') return { ...acc, depth: acc.depth + 1 };
+      if (token === '}') return { ...acc, depth: acc.depth - 1 };
+      return acc.depth === 1 ? { ...acc, body: acc.body + token } : acc;
+    },
+    { depth: 1, body: '' },
+  ).body;
+
+const readThemeVars = (content: string): [string, string][] => {
+  const css = content.replace(STRING_OR_COMMENT_REGEX, (_, str: string | undefined) => str ?? '');
+  return [...css.matchAll(THEME_OPEN_REGEX)]
+    .flatMap((theme) => [
+      ...topLevelBody(css.slice(theme.index + theme[0].length)).matchAll(THEME_VAR_REGEX),
+    ])
     .map((m) => [m[1], m[2].trim()]);
+};
 
 const safeCompute = (compute: () => Record<string, string>): Record<string, string> => {
   try {

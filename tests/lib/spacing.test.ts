@@ -82,6 +82,18 @@ describe('spacing', () => {
       });
     });
 
+    it('should detect negatives on position and space utilities', () => {
+      ['-inset-x-[4px]', '-top-[4px]', 'start-[-4px]', '-space-y-[4px]'].forEach((className) => {
+        expect(parseArbitrarySpacing(className)).toMatchObject({ negative: true });
+      });
+    });
+
+    it('should return null for negatives on utilities without negative values', () => {
+      ['-p-[4px]', 'px-[-4px]', '-gap-[4px]', 'w-[-4px]', '-max-h-[4px]'].forEach((className) => {
+        expect(parseArbitrarySpacing(className)).toBeNull();
+      });
+    });
+
     it('should match the longest utility', () => {
       expect(parseArbitrarySpacing('min-w-[8px]')).toMatchObject({ utility: 'min-w' });
       expect(parseArbitrarySpacing('max-h-[8px]')).toMatchObject({ utility: 'max-h' });

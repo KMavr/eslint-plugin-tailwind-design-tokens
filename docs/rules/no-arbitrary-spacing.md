@@ -22,7 +22,9 @@ It checks:
 - **Sizing**: `w`, `h`, `size`, `min-w`, `min-h`, `max-w`, `max-h`
 - **Position**: `inset`, `inset-x`, `inset-y`, `top`, `right`, `bottom`, `left`, `start`, `end`
 
-Variants (`md:hover:`) and important markers (`!p-…`, `p-…!`) are kept in the fix.
+Variants (`md:hover:`) and important markers (`!p-…`, `p-…!`) are kept in the fix. Negatives
+are only checked on margin, space and position utilities, the ones Tailwind has negative values
+for. A class like `-p-[4px]` is skipped instead of being "fixed" to `-p-1`, which doesn't exist.
 
 For each arbitrary `px` or `rem` value, the rule looks for replacements:
 
@@ -70,7 +72,9 @@ With the default `--spacing: 0.25rem` and `@theme { --spacing-card: 24px; }`:
 - **`cssFile`**: reads `--spacing` (the scale base) and `--spacing-*` (named tokens) from every
   `@theme` block. Resolved relative to the lint working directory. Without it, the base is
   Tailwind's default `0.25rem` and there are no named tokens. `--spacing: initial` turns the
-  numeric scale off, so only named tokens are suggested.
+  numeric scale off, so only named tokens are suggested. Declarations are applied in order, so
+  `--*: initial` and `--spacing-*: initial` also turn the scale off unless a later `--spacing`
+  sets it again, and they drop any `--spacing-*` tokens declared before them.
 - **`allow`**: classes to never flag, such as a deliberate one-off. An entry wrapped in slashes is
   a regular expression (`'/^h-\\[/'` ignores every arbitrary height). A malformed pattern is a
   config error and fails fast.

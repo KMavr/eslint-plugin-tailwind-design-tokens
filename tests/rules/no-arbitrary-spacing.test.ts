@@ -22,7 +22,8 @@ import rule from '../../src/rules/no-arbitrary-spacing';
  *   - 2+ candidates: `useScale` with one suggestion per candidate, no autofix
  *
  * Exempt (not reported): non-px/rem values (calc, var, %, viewport units, 0),
- * allowed classes, and arbitrary values on non-spacing utilities.
+ * allowed classes, arbitrary values on non-spacing utilities, and negatives on
+ * utilities without negative values (padding, gap, sizing).
  *
  * Options: [{ cssFile?, allow?, rootFontSize? = 16, stepIncrement? = 0.25 }].
  */
@@ -68,6 +69,8 @@ ruleTester.run('no-arbitrary-spacing', rule, {
     { code: 'const c = "h-[13px] h-[37.5px]";', options: [{ allow: ['/^h-\\[/'] }] },
     // JSX with only on-scale classes
     '<div className="flex p-4" />;',
+    // negatives on utilities Tailwind has no negative values for are not touched
+    'const c = "-p-[4px] px-[-4px] -gap-[8px] w-[-4px]";',
   ],
   invalid: [
     {

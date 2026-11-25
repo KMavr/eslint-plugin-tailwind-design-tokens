@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { createRequire } from 'node:module';
+import { spawnSync } from 'node:child_process';
 import { normalizeColor } from './colors';
 
 export interface ColorTokenOptions {
@@ -117,6 +117,53 @@ const flattenColors = (tree: Record<string, unknown>, prefix = ''): [string, str
     return [];
   });
 
+type ColorTree = Record<string, unknown>;
+
+const isPlainObject = (value: unknown): value is ColorTree =>
+  typeof value === 'object' && value !== null && !Array.isArray(value);
+
+const deepMerge = (base: ColorTree, override: ColorTree): ColorTree =>
+  Object.entries(override).reduce<ColorTree>(
+    (acc, [key, value]) => ({
+      ...acc,
+      [key]: isPlainObject(acc[key]) && isPlainObject(value) ? deepMerge(acc[key], value) : value,
+    }),
+    base,
+  );
+
+// Runs in a fresh Node process: no CJS/ESM module cache, so edits to the config and to
+// anything it imports are picked up. Functions are dropped by JSON, which is fine (not colors).
+const CONFIG_LOADER_SCRIPT = `
+import { pathToFileURL } from 'node:url';
+try {
+  const ns = await import(pathToFileURL(process.argv[1]).href);
+  const mod = ns.default ?? ns;
+  const theme = (mod?.default ?? mod)?.theme;
+  const result = { colors: theme?.colors ?? {}, extend: theme?.extend?.colors ?? {} };
+  process.stdout.write('\\n' + JSON.stringify(result));
+} catch (error) {
+  process.stderr.write(error instanceof Error ? error.message : String(error));
+  process.exitCode = 1;
+}
+`;
+
+const readConfigColors = (abs: string): { colors: ColorTree; extend: ColorTree } => {
+  const result = spawnSync(
+    process.execPath,
+    ['--input-type=module', '-e', CONFIG_LOADER_SCRIPT, abs],
+    {
+      cwd: path.dirname(abs),
+      encoding: 'utf-8',
+      // Editor ESLint servers can run inside Electron; this makes its binary behave as Node.
+      env: { ...process.env, ELECTRON_RUN_AS_NODE: '1' },
+    },
+  );
+  if (result.error) throw result.error;
+  if (result.status !== 0) throw new Error(result.stderr.trim() || `exit code ${result.status}`);
+  // The config may log to stdout; the JSON is always the last line.
+  return JSON.parse(result.stdout.slice(result.stdout.lastIndexOf('\n') + 1));
+};
+
 const loadConfigColorTokens = (
   configFile: string | undefined,
   cwd: string,
@@ -127,19 +174,9 @@ const loadConfigColorTokens = (
     kind: 'config-color',
     abs,
     compute: () => {
-      const req = createRequire(abs);
-      // Bust Node's own module cache so an edited config actually reloads.
-      delete req.cache[abs];
-      const mod = req(abs);
-      const config = mod?.default ?? mod;
-
-      const colors: Record<string, unknown> = {
-        ...config?.theme?.colors,
-        ...config?.theme?.extend?.colors,
-      };
-
+      const { colors, extend } = readConfigColors(abs);
       return Object.fromEntries(
-        flattenColors(colors).flatMap(([name, color]) => {
+        flattenColors(deepMerge(colors, extend)).flatMap(([name, color]) => {
           const normalized = normalizeColor(color);
           return normalized ? [[normalized, name]] : [];
         }),

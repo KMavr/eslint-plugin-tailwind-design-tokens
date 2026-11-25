@@ -73,8 +73,11 @@ const cls = 'bg-ink text-muted';
 
 - **`cssFile`** — reads `--color-*` declarations from the `@theme { … }` block. Resolved relative to
   the lint working directory.
-- **`configFile`** — `require`s the config and reads `theme.colors` / `theme.extend.colors`. Nested
-  palettes flatten to `family-shade`; a `DEFAULT` key maps to the bare family name.
+- **`configFile`** — loads the config (CommonJS or ESM) in a separate Node process and reads
+  `theme.colors` deep-merged with `theme.extend.colors`. Nested palettes flatten to
+  `family-shade`; a `DEFAULT` key maps to the bare family name. The config is reloaded when its
+  modified time changes; after editing only a module it imports, save the config too (or restart
+  ESLint).
 - **`tokens`** — an explicit map for tokens that don't live in a Tailwind file.
 - **`allow`** — values to never flag (e.g. `'transparent'`, a deliberate brand hex). Matched against
   both the raw and normalized form, so `'#0a0a0a'` also allows `#0A0A0A`. An entry wrapped in

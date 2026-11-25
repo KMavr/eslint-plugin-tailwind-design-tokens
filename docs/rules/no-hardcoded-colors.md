@@ -21,6 +21,20 @@ It detects:
 Because it scans whole strings, it catches colors in className strings, inline `style` objects, and
 CSS-in-JS alike.
 
+### Which hex values are detected
+
+A `#` followed by hex digits is also common in non-color text (`issue #123`, `href="#add"`), so hex
+is only reported where it is certainly a color:
+
+- **The whole string** — `'#0a0a0a'`, `style={{ color: '#fff' }}`, `fill="#000"`
+- **Inside a Tailwind arbitrary value** — `bg-[#fff]`, `shadow-[0_0_2px_#000]`,
+  `bg-[linear-gradient(#fff,#000)]`
+- **In a CSS declaration value** — `color: #fff;`, `border: 1px solid #fff` (a lowercase property
+  name followed by `:`)
+
+Anything else is ignored, including every JSX `href` value. Functional colors (`rgb()`, `oklch()`,
+…) are unambiguous and are reported anywhere.
+
 Each detected color is normalized (lowercased, shorthand expanded, opaque alpha dropped) and looked
 up in your configured token map:
 

@@ -164,7 +164,9 @@ sources win on conflict: **cssFile < configFile < tokens**):
 
 Color values are normalized before matching, so `#FFF` in your code matches a token defined as
 `#ffffff`. Hex and the CSS color functions `rgb()`, `hsl()`, `hwb()`, `lab()`, `lch()`, `oklab()`,
-and `oklch()` are all detected, including inside Tailwind arbitrary values like `bg-[#0a0a0a]`.
+and `oklch()` are all detected, including inside Tailwind arbitrary values like `bg-[#0a0a0a]`. Hex
+is only reported where it is certainly a color (the whole string, an arbitrary value, or a CSS
+declaration), so `issue #123` and `href="#add"` are left alone.
 
 `no-arbitrary-spacing` reads `--spacing` (the scale base, default `0.25rem`) and `--spacing-*`
 (named tokens) from the same `@theme` blocks via its own `cssFile` option. It also takes

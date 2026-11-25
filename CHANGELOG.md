@@ -1,5 +1,27 @@
 # Changelog
 
+## [0.5.0](https://github.com/KMavr/eslint-plugin-tailwind-design-tokens/compare/eslint-plugin-tailwind-design-tokens-v0.4.0...eslint-plugin-tailwind-design-tokens-v0.5.0) (2026-11-25)
+
+
+### ⚠ BREAKING CHANGES
+
+* invalid cssFile/configFile paths or configs that throw now fail the lint run instead of silently loading no tokens. Requires Node >=22.12.
+
+### Features
+
+* detect v4 color utilities and v4.2 palettes in no-default-palette ([#70](https://github.com/KMavr/eslint-plugin-tailwind-design-tokens/issues/70)) ([3022f5a](https://github.com/KMavr/eslint-plugin-tailwind-design-tokens/commit/3022f5a0984dbda9547008cb82993bc1d2d9c5d4))
+
+
+### Bug Fixes
+
+* compute autofix ranges from raw source text ([#64](https://github.com/KMavr/eslint-plugin-tailwind-design-tokens/issues/64), [#65](https://github.com/KMavr/eslint-plugin-tailwind-design-tokens/issues/65)) ([3e650b4](https://github.com/KMavr/eslint-plugin-tailwind-design-tokens/commit/3e650b44aa78316c49fd558f5483b203506d1ffe))
+* parse [@theme](https://github.com/theme) blocks by brace depth, ignoring comments and nested blocks ([#67](https://github.com/KMavr/eslint-plugin-tailwind-design-tokens/issues/67)) ([ee21b8e](https://github.com/KMavr/eslint-plugin-tailwind-design-tokens/commit/ee21b8e6947efaeaed6f94f30ee290d107339149))
+* reload configFile in a child process and deep-merge extend colors ([#70](https://github.com/KMavr/eslint-plugin-tailwind-design-tokens/issues/70)) ([e35c421](https://github.com/KMavr/eslint-plugin-tailwind-design-tokens/commit/e35c4211f3ed8cd130a5369a94c567a7f2cef743))
+* report hex colors only in certain contexts ([#69](https://github.com/KMavr/eslint-plugin-tailwind-design-tokens/issues/69)) ([0b1701d](https://github.com/KMavr/eslint-plugin-tailwind-design-tokens/commit/0b1701d129169e9d1f6f86b3ea46658f9feb3862))
+* skip invalid spacing negatives and honor theme namespace resets ([#70](https://github.com/KMavr/eslint-plugin-tailwind-design-tokens/issues/70)) ([937083c](https://github.com/KMavr/eslint-plugin-tailwind-design-tokens/commit/937083c73fd656dbcd39d0372e6df1d8a3eb7aef))
+* throw on missing or failing cssFile/configFile ([#68](https://github.com/KMavr/eslint-plugin-tailwind-design-tokens/issues/68)) ([7756cea](https://github.com/KMavr/eslint-plugin-tailwind-design-tokens/commit/7756ceaa9053c1ad12367b9f3e0e8be624f29925))
+* unwrap default export of ESM Tailwind configs ([#66](https://github.com/KMavr/eslint-plugin-tailwind-design-tokens/issues/66)) ([26fde0d](https://github.com/KMavr/eslint-plugin-tailwind-design-tokens/commit/26fde0d3f3ae79139e997a803eb37e8952dcf26e))
+
 ## [0.4.0](https://github.com/KMavr/eslint-plugin-tailwind-design-tokens/compare/eslint-plugin-tailwind-design-tokens-v0.3.1...eslint-plugin-tailwind-design-tokens-v0.4.0) (2026-11-24)
 
 

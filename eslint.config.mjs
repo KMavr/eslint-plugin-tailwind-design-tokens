@@ -1,5 +1,5 @@
 import tseslint from 'typescript-eslint';
-import eslintPluginPrettierRecommended from 'eslint-plugin-prettier/recommended';
+import eslintConfigPrettier from 'eslint-config-prettier';
 
 export default tseslint.config(
   { ignores: ['dist/**', 'coverage/**', 'examples/**'] },
@@ -10,5 +10,5 @@ export default tseslint.config(
       'no-unneeded-ternary': 'error',
     },
   },
-  eslintPluginPrettierRecommended,
+  eslintConfigPrettier,
 );

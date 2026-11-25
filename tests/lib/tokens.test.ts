@@ -267,6 +267,26 @@ describe('tokens', () => {
       });
     });
 
+    it('should deep-merge extend.colors into theme.colors', () => {
+      writeConfig(`module.exports = { theme: {
+        colors: { blue: { 500: '#0000ff' } },
+        extend: { colors: { blue: { 950: '#000033' } } },
+      } };`);
+      expect(loadColorTokens({ configFile: 'tailwind.config.js' }, dir)).toEqual({
+        '#0000ff': 'blue-500',
+        '#000033': 'blue-950',
+      });
+    });
+
+    it('should ignore stdout output logged by the config', () => {
+      writeConfig(
+        `console.log('hello'); module.exports = { theme: { colors: { ink: '#123456' } } };`,
+      );
+      expect(loadColorTokens({ configFile: 'tailwind.config.js' }, dir)).toEqual({
+        '#123456': 'ink',
+      });
+    });
+
     it('should throw naming the resolved path when the config does not exist', () => {
       expect(() => loadColorTokens({ configFile: 'nope.config.js' }, dir)).toThrow(
         join(dir, 'nope.config.js'),
@@ -326,6 +346,42 @@ describe('tokens', () => {
       fs.utimesSync(file, future, future);
 
       expect(loadColorTokens({ cssFile: 'globals.css' }, dir)).toEqual({ '#ffffff': 'ink' });
+    });
+
+    const touch = (file: string) => {
+      const future = new Date(Date.now() + 2000);
+      fs.utimesSync(file, future, future);
+    };
+
+    it('should reload an edited ESM configFile', () => {
+      const file = join(dir, 'tailwind.config.mjs');
+      writeFileSync(file, `export default { theme: { colors: { ink: '#000000' } } };`, 'utf-8');
+      expect(loadColorTokens({ configFile: 'tailwind.config.mjs' }, dir)).toEqual({
+        '#000000': 'ink',
+      });
+
+      writeFileSync(file, `export default { theme: { colors: { ink: '#ffffff' } } };`, 'utf-8');
+      touch(file);
+
+      expect(loadColorTokens({ configFile: 'tailwind.config.mjs' }, dir)).toEqual({
+        '#ffffff': 'ink',
+      });
+    });
+
+    it('should reload a module imported by the configFile once the config changes', () => {
+      const colors = join(dir, 'colors.js');
+      writeFileSync(colors, `module.exports = { ink: '#000000' };`, 'utf-8');
+      writeConfig(`module.exports = { theme: { colors: require('./colors.js') } };`);
+      expect(loadColorTokens({ configFile: 'tailwind.config.js' }, dir)).toEqual({
+        '#000000': 'ink',
+      });
+
+      writeFileSync(colors, `module.exports = { ink: '#ffffff' };`, 'utf-8');
+      touch(join(dir, 'tailwind.config.js'));
+
+      expect(loadColorTokens({ configFile: 'tailwind.config.js' }, dir)).toEqual({
+        '#ffffff': 'ink',
+      });
     });
   });
 

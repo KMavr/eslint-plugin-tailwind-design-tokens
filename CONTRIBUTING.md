@@ -13,7 +13,7 @@ npm run lint       # eslint
 npm run typecheck  # tsc --noEmit
 ```
 
-Requires **ESLint 9+** and **Node 22+**.
+Requires **ESLint 9+** and **Node 22.12+**.
 
 ## Project layout
 

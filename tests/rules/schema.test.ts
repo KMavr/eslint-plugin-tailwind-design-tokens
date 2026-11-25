@@ -31,8 +31,8 @@ describe('rules schema', () => {
     it('should accept a fully valid options object', () => {
       expect(() =>
         lintWith('no-hardcoded-colors', noHardcodedColors, {
-          cssFile: './globals.css',
-          configFile: './tailwind.config.js',
+          cssFile: './examples/theme.css',
+          configFile: './examples/tailwind.config.js',
           tokens: { '#0a0a0a': 'ink' },
           allow: ['transparent', '/^rgb\\(/'],
         }),
@@ -97,7 +97,7 @@ describe('rules schema', () => {
     it('should accept a fully valid options object', () => {
       expect(() =>
         lint({
-          cssFile: './globals.css',
+          cssFile: './examples/theme.css',
           allow: ['w-[37px]', '/^h-\\[/'],
           rootFontSize: 10,
           stepIncrement: 0.5,

@@ -35,22 +35,23 @@ interface CacheRequest {
 }
 
 const readThroughCache = ({ kind, abs, compute }: CacheRequest): Record<string, string> => {
-  let mtimeMs: number;
   try {
-    mtimeMs = fs.statSync(abs).mtimeMs;
-  } catch {
-    return {};
-  }
+    const { mtimeMs } = fs.statSync(abs);
+    const key = `${kind}:${abs}`;
+    const cached = fileCache.get(key);
+    if (cached && cached.mtimeMs === mtimeMs) {
+      return cached.tokens;
+    }
 
-  const key = `${kind}:${abs}`;
-  const cached = fileCache.get(key);
-  if (cached && cached.mtimeMs === mtimeMs) {
-    return cached.tokens;
+    const tokens = compute();
+    fileCache.set(key, { mtimeMs, tokens });
+    return tokens;
+  } catch (error) {
+    const reason = error instanceof Error ? error.message : String(error);
+    throw new Error(`eslint-plugin-tailwind-design-tokens: cannot load "${abs}": ${reason}`, {
+      cause: error,
+    });
   }
-
-  const tokens = safeCompute(compute);
-  fileCache.set(key, { mtimeMs, tokens });
-  return tokens;
 };
 
 const topLevelBody = (css: string): string =>
@@ -71,14 +72,6 @@ const readThemeVars = (content: string): [string, string][] => {
       ...topLevelBody(css.slice(theme.index + theme[0].length)).matchAll(THEME_VAR_REGEX),
     ])
     .map((m) => [m[1], m[2].trim()]);
-};
-
-const safeCompute = (compute: () => Record<string, string>): Record<string, string> => {
-  try {
-    return compute();
-  } catch {
-    return {};
-  }
 };
 
 const normalizeMap = (map: Record<string, string>): Record<string, string> =>

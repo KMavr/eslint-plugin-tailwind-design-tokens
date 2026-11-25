@@ -26,8 +26,8 @@ import { loadColorTokens, loadSpacingTokens } from '../../src/lib/tokens';
  *   `initial`; named maps <name> -> raw value, dropping `initial` entries.
  *
  *   Resolution: a relative cssFile is resolved against `cwd` (defaults to
- *   process.cwd()). Fail-soft: a missing/unparseable file yields no tokens from
- *   that source and never throws.
+ *   process.cwd()). Fail-fast: a missing file, or a config that throws while
+ *   loading, throws an error naming the resolved path.
  */
 
 let dir: string;
@@ -202,9 +202,10 @@ describe('tokens', () => {
       expect(loadColorTokens({ cssFile: 'globals.css' }, dir)).toEqual({});
     });
 
-    it('should fail soft (return {}) when the file does not exist', () => {
-      expect(() => loadColorTokens({ cssFile: 'does-not-exist.css' }, dir)).not.toThrow();
-      expect(loadColorTokens({ cssFile: 'does-not-exist.css' }, dir)).toEqual({});
+    it('should throw naming the resolved path when the file does not exist', () => {
+      expect(() => loadColorTokens({ cssFile: 'does-not-exist.css' }, dir)).toThrow(
+        join(dir, 'does-not-exist.css'),
+      );
     });
   });
 
@@ -266,9 +267,15 @@ describe('tokens', () => {
       });
     });
 
-    it('should fail soft (return {}) when the config does not exist', () => {
-      expect(() => loadColorTokens({ configFile: 'nope.config.js' }, dir)).not.toThrow();
-      expect(loadColorTokens({ configFile: 'nope.config.js' }, dir)).toEqual({});
+    it('should throw naming the resolved path when the config does not exist', () => {
+      expect(() => loadColorTokens({ configFile: 'nope.config.js' }, dir)).toThrow(
+        join(dir, 'nope.config.js'),
+      );
+    });
+
+    it('should throw with the original reason when the config throws while loading', () => {
+      writeConfig(`throw new Error('boom');`);
+      expect(() => loadColorTokens({ configFile: 'tailwind.config.js' }, dir)).toThrow(/boom/);
     });
   });
 
@@ -337,11 +344,10 @@ describe('tokens', () => {
       expect(loadSpacingTokens(undefined, dir)).toEqual({ base: '0.25rem', named: {} });
     });
 
-    it('should default the base when the cssFile does not exist', () => {
-      expect(loadSpacingTokens('does-not-exist.css', dir)).toEqual({
-        base: '0.25rem',
-        named: {},
-      });
+    it('should throw naming the resolved path when the cssFile does not exist', () => {
+      expect(() => loadSpacingTokens('does-not-exist.css', dir)).toThrow(
+        join(dir, 'does-not-exist.css'),
+      );
     });
 
     it('should return a null base when --spacing is initial', () => {

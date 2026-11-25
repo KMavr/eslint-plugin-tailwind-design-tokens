@@ -31,7 +31,7 @@ export const normalizeColor = (raw: string): string | null => {
 };
 
 export const findColors = (text: string) => {
-  if (!/[#(]/.test(text) || !COLOR_HINT.test(text)) {
+  if (!COLOR_HINT.test(text)) {
     return [];
   }
 

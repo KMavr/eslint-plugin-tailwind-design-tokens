@@ -146,6 +146,57 @@ describe('tokens', () => {
       expect(loadColorTokens({ cssFile: 'globals.css' }, dir)).toEqual({});
     });
 
+    it('should keep tokens declared after a nested @keyframes block', () => {
+      writeCss(`@theme {
+      --color-brand: #ff0000;
+      --animate-x: x 1s;
+      @keyframes x { to { opacity: 1; } }
+      --color-after: #00ff00;
+    }`);
+      expect(loadColorTokens({ cssFile: 'globals.css' }, dir)).toEqual({
+        '#ff0000': 'brand',
+        '#00ff00': 'after',
+      });
+    });
+
+    it('should keep reading later @theme blocks after one with nested blocks', () => {
+      writeCss(`@theme { @keyframes x { to { opacity: 1; } } }
+    @theme { --color-ink: #0a0a0a; }`);
+      expect(loadColorTokens({ cssFile: 'globals.css' }, dir)).toEqual({ '#0a0a0a': 'ink' });
+    });
+
+    it('should ignore declarations inside nested blocks', () => {
+      writeCss(`@theme {
+      --color-ink: #0a0a0a;
+      @keyframes x { from { --color-ghost: #123456; } }
+    }`);
+      expect(loadColorTokens({ cssFile: 'globals.css' }, dir)).toEqual({ '#0a0a0a': 'ink' });
+    });
+
+    it('should ignore commented-out declarations', () => {
+      writeCss(`@theme {
+      /* --color-old: #abcdef; */
+      --color-ink: #0a0a0a;
+    }`);
+      expect(loadColorTokens({ cssFile: 'globals.css' }, dir)).toEqual({ '#0a0a0a': 'ink' });
+    });
+
+    it('should not let braces inside comments affect block boundaries', () => {
+      writeCss(`@theme {
+      /* } */
+      --color-ink: #0a0a0a;
+    }`);
+      expect(loadColorTokens({ cssFile: 'globals.css' }, dir)).toEqual({ '#0a0a0a': 'ink' });
+    });
+
+    it('should not let braces inside strings affect block boundaries', () => {
+      writeCss(`@theme {
+      @keyframes x { to { content: "}"; } }
+      --color-ink: #0a0a0a;
+    }`);
+      expect(loadColorTokens({ cssFile: 'globals.css' }, dir)).toEqual({ '#0a0a0a': 'ink' });
+    });
+
     it('should return {} when there is no @theme block', () => {
       writeCss(`:root { --color-ink: #0a0a0a; }`);
       expect(loadColorTokens({ cssFile: 'globals.css' }, dir)).toEqual({});
@@ -318,6 +369,18 @@ describe('tokens', () => {
       writeCss(
         `@theme { --spacing-card: 20px; } @theme inline { --spacing: 2px; --spacing-card: 24px; }`,
       );
+      expect(loadSpacingTokens('globals.css', dir)).toEqual({
+        base: '2px',
+        named: { card: '24px' },
+      });
+    });
+
+    it('should keep spacing tokens declared after a nested @keyframes block', () => {
+      writeCss(`@theme {
+      @keyframes x { to { opacity: 1; } }
+      --spacing: 2px;
+      --spacing-card: 24px;
+    }`);
       expect(loadSpacingTokens('globals.css', dir)).toEqual({
         base: '2px',
         named: { card: '24px' },

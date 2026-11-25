@@ -39,36 +39,34 @@ const rule: Rule.RuleModule = {
     const tokens = loadColorTokens(options, context.cwd);
     const isAllowed = makeAllowMatcher(options.allow);
 
-    const checkString = (node: Rule.Node, value: string, fixable: boolean) => {
-      findColors(value).forEach(({ raw, normalized, index }) => {
+    const checkString = (node: Rule.Node, text: string, start: number) => {
+      findColors(text).forEach(({ raw, normalized, index }) => {
         if (isAllowed(raw) || isAllowed(normalized)) return;
 
         const token = tokens[normalized];
         if (token) {
-          const before = value[index - 1];
-          const after = value[index + raw.length];
+          const before = text[index - 1];
+          const after = text[index + raw.length];
           const bracketed = before === '[' && after === ']';
 
           const applyFix = (fixer: Rule.RuleFixer) => {
-            const start = node.range![0] + 1 + index - (bracketed ? 1 : 0);
+            const from = start + index - (bracketed ? 1 : 0);
             const length = raw.length + (bracketed ? 2 : 0);
-            return fixer.replaceTextRange([start, start + length], token);
+            return fixer.replaceTextRange([from, from + length], token);
           };
 
           context.report({
             node,
             messageId: 'useDesignToken',
             data: { color: raw, token },
-            ...(fixable && bracketed ? { fix: applyFix } : {}),
-            suggest: fixable
-              ? [
-                  {
-                    messageId: 'replaceWithToken',
-                    data: { token },
-                    fix: applyFix,
-                  },
-                ]
-              : [],
+            ...(bracketed ? { fix: applyFix } : {}),
+            suggest: [
+              {
+                messageId: 'replaceWithToken',
+                data: { token },
+                fix: applyFix,
+              },
+            ],
           });
         } else {
           context.report({
@@ -80,7 +78,7 @@ const rule: Rule.RuleModule = {
       });
     };
 
-    return visitStrings((node, value, isTemplate) => checkString(node, value, !isTemplate));
+    return visitStrings(checkString);
   },
 };
 

@@ -26,6 +26,22 @@ const SPACING_UTILITIES = [
   'end',
 ];
 
+// Tailwind only generates negative variants for these; `-p-1` or `w-[-4px]` aren't valid classes.
+const NEGATABLE_UTILITIES = new Set([
+  ...SIDES.map((side) => `m${side}`),
+  'space-x',
+  'space-y',
+  'inset',
+  'inset-x',
+  'inset-y',
+  'top',
+  'right',
+  'bottom',
+  'left',
+  'start',
+  'end',
+]);
+
 const UTILITY_ALTERNATION = SPACING_UTILITIES.join('|');
 
 const ARBITRARY_SPACING_REGEX = new RegExp(`^(-)?(${UTILITY_ALTERNATION})-\\[(-)?([^\\]]+)\\]$`);
@@ -51,9 +67,12 @@ export const parseArbitrarySpacing = (className: string): ArbitrarySpacing | nul
   if (!match) return null;
 
   const [, leadingMinus, utility, innerMinus, value] = match;
+  const negative = Boolean(leadingMinus || innerMinus);
+  if (negative && !NEGATABLE_UTILITIES.has(utility)) return null;
+
   return {
     prefix: className.slice(0, variantEnd) + leading,
-    negative: Boolean(leadingMinus || innerMinus),
+    negative,
     utility,
     value,
     suffix,

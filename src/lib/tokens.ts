@@ -17,7 +17,8 @@ export interface SpacingTokens {
 const THEME_OPEN_REGEX = /@theme(?:\s+[\w-]+)*\s*\{/g;
 const STRING_OR_COMMENT_REGEX = /("(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*')|\/\*[\s\S]*?\*\//g;
 const CSS_TOKEN_REGEX = /"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|[{}]|[^"'{}]+/g;
-const THEME_VAR_REGEX = /--([\w-]+)\s*:\s*([^;]+)/g;
+const THEME_VAR_REGEX = /--([\w*-]+)\s*:\s*([^;]+)/g;
+const NAMESPACE_RESET_REGEX = /^(?:([\w-]+)-)?\*$/;
 
 const DEFAULT_SPACING = '0.25rem';
 
@@ -194,6 +195,20 @@ export const loadColorTokens = (
   ...normalizeMap(options.tokens ?? {}),
 });
 
+// Replays declarations in order on top of Tailwind's default theme, like Tailwind does:
+// `--ns-*: initial` deletes every variable starting with `ns`, including `--ns` itself.
+const applyThemeVars = (vars: [string, string][]): Record<string, string> =>
+  vars.reduce<Record<string, string>>(
+    (acc, [name, value]) => {
+      const reset = name.match(NAMESPACE_RESET_REGEX);
+      if (!reset) return { ...acc, [name]: value };
+      if (value !== 'initial') return acc;
+      const namespace = reset[1] ?? '';
+      return Object.fromEntries(Object.entries(acc).filter(([key]) => !key.startsWith(namespace)));
+    },
+    { spacing: DEFAULT_SPACING },
+  );
+
 export const loadSpacingTokens = (
   cssFile: string | undefined,
   cwd = process.cwd(),
@@ -206,14 +221,14 @@ export const loadSpacingTokens = (
     abs,
     compute: () =>
       Object.fromEntries(
-        readThemeVars(fs.readFileSync(abs, 'utf-8')).filter(
+        Object.entries(applyThemeVars(readThemeVars(fs.readFileSync(abs, 'utf-8')))).filter(
           ([name]) => name === 'spacing' || name.startsWith('spacing-'),
         ),
       ),
   });
-  const { spacing = DEFAULT_SPACING, ...rest } = vars;
+  const { spacing, ...rest } = vars;
   return {
-    base: spacing === 'initial' ? null : spacing,
+    base: spacing === undefined || spacing === 'initial' ? null : spacing,
     named: Object.fromEntries(
       Object.entries(rest)
         .filter(([, value]) => value !== 'initial')

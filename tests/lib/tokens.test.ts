@@ -420,11 +420,42 @@ describe('tokens', () => {
     });
 
     it('should drop named tokens set to initial', () => {
-      writeCss(`@theme { --spacing-card: 24px; --spacing-old: initial; --spacing-*: initial; }`);
+      writeCss(`@theme { --spacing-card: 24px; --spacing-old: initial; }`);
       expect(loadSpacingTokens('globals.css', dir)).toEqual({
         base: '0.25rem',
         named: { card: '24px' },
       });
+    });
+
+    it('should return a null base after a full theme reset without --spacing', () => {
+      writeCss(`@theme { --*: initial; --color-ink: #0a0a0a; }`);
+      expect(loadSpacingTokens('globals.css', dir)).toEqual({ base: null, named: {} });
+    });
+
+    it('should read --spacing declared after a full theme reset', () => {
+      writeCss(`@theme { --*: initial; --spacing: 4px; }`);
+      expect(loadSpacingTokens('globals.css', dir)).toEqual({ base: '4px', named: {} });
+    });
+
+    it('should clear the base and earlier named tokens on --spacing-*: initial', () => {
+      writeCss(`@theme { --spacing-old: 8px; --spacing-*: initial; --spacing-card: 24px; }`);
+      expect(loadSpacingTokens('globals.css', dir)).toEqual({
+        base: null,
+        named: { card: '24px' },
+      });
+    });
+
+    it('should keep spacing when another namespace is reset', () => {
+      writeCss(`@theme { --color-*: initial; --spacing-card: 24px; }`);
+      expect(loadSpacingTokens('globals.css', dir)).toEqual({
+        base: '0.25rem',
+        named: { card: '24px' },
+      });
+    });
+
+    it('should ignore a namespace wildcard that is not set to initial', () => {
+      writeCss(`@theme { --*: 1px; --spacing: 2px; }`);
+      expect(loadSpacingTokens('globals.css', dir)).toEqual({ base: '2px', named: {} });
     });
 
     it('should merge every @theme block with later blocks winning', () => {

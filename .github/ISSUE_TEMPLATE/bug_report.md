@@ -42,3 +42,4 @@ assignees: ''
 - Plugin version:
 - ESLint version:
 - Node version:
+- OS:
